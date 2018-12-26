@@ -1,4 +1,5 @@
 import requests
+import json
 
 
 def load_oeis_sequence_table(sid, max_n=None):
@@ -18,5 +19,18 @@ def load_oeis_sequence_table(sid, max_n=None):
     return table
 
 
+def get_oeis_sequence_meta(sid, key='name'):
+    """
+        Returns the sequence metadata dictionary - more information can be
+        found here:
+            http://oeis.org/wiki/JSON_Format,_Compressed_Files
+        key: 'name', 'comment'
+    """
+    meta_data = json.loads(requests.get('https://oeis.org/search?q={}&fmt=json'.format(sid)).text)
+
+    return meta_data['results'][0][key]
+
+
 if __name__ == '__main__':
     print(load_oeis_sequence_table("A003415", 10))
+    print(get_oeis_sequence_meta("A003415"))
