@@ -29,7 +29,7 @@ def log_arithmetic_derivative(n):
 
 def arithmetic_derivative(n):
     """Computes the arithmetic derivative of a number. Currently only works for integers. """
-    return n * log_arithmetic_derivative(n)
+    return int(n * log_arithmetic_derivative(n))
 
 
 if __name__ == '__main__':
