@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+
+
 def primes_of_n(n):
     """
     Given an integer n, return a dictionary of prime factors with the keys being the prime number, and the values
@@ -31,3 +34,11 @@ def arithmetic_derivative(n):
 
 if __name__ == '__main__':
     assert arithmetic_derivative(5*11*11*11) == 3146
+
+    x = 100000
+    # plt.plot(range(x), [arithmetic_derivative(x) for x in range(x)])
+    plt.plot(range(x), [arithmetic_derivative(x) for x in range(x)], 'ro')
+    plt.ylabel("Arithmetic Derivative")
+    plt.xlabel("Number")
+    plt.show()
+
