@@ -48,10 +48,28 @@ class Legendre:
         if self.p == 2:
             raise NotImplementedError("prime equals to 2")
         if self.p not in LS_PRIMES:
+            if self.p == 1:
+                self.v = 1
             raise NotImplementedError("value is not a prime")
+        else:
+            self.v = self.value()
+
+    def __mul__(self, other):
+        return self.v * other.v
+
+    def __pow__(self, power, modulo=None):
+        return self.v ** power
+
+    def __eq__(self, other):
+        return self.v == other
+
+    def __repr__(self):
+        return str(self.v)
 
     def value(self):
-        if self.n == -1:
+        if self.n == 0:
+            return 0
+        elif self.n == -1:
             if self.p % 4 == 1:
                 return 1
             else:
@@ -66,27 +84,26 @@ class Legendre:
         else:
             if self.n in LS_PRIMES:
                 if self.n % 4 == 1 or self.p % 4 == 1:
-                    return Legendre(self.p, self.n).value()
+                    return Legendre(self.p, self.n).v
                 else:
-                    return -Legendre(self.p, self.n).value()
+                    return -Legendre(self.p, self.n).v
             else:
                 if self.n < 0:
-                    return Legendre(-1, self.p) .value() * Legendre(-self.n, self.p).value()
+                    return Legendre(-1, self.p) * Legendre(-self.n, self.p)
                 else:
                     # factor n
                     dc_factors = primes_of_n(self.n)
                     val = 1
                     for p, exp in dc_factors.items():
-                        if exp % 2 == 0:
-                            val *= 1
-                        else:
-                            val *= Legendre(p, self.p).value() ** exp
+                        if exp % 2 == 1:
+                            val *= Legendre(p, self.p) ** exp
                     return val
 
 
 if __name__ == '__main__':
-    assert Legendre(-1, 5).value() == 1
-    assert Legendre(4, 31).value() == 1
-    assert Legendre(2, 7).value() == 1
-    assert Legendre(24, 31).value() == -1
-    assert Legendre(3411, 3457).value() == -1
+    assert Legendre(-1, 5) == 1
+    assert Legendre(4, 31) == 1
+    assert Legendre(2, 7) == 1
+    assert Legendre(24, 31) == -1
+    assert Legendre(3411, 3457) == -1
+    assert Legendre(7, 7) == 0
