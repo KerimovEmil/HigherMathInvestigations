@@ -40,9 +40,26 @@ plt.xlabel('k')
 plt.legend(['1 - floor((3/2)^k )) / (3/2)^k '])
 
 # plotting the (6^k- 4^k) / (6^k - 3^k)
-floor_ratio = [1 - (6**i - 4**i) / (6**i - 3**i) for i in range(2, m)]
-plt.plot(floor_ratio)
+power_ratio = [1 - (6**i - 4**i) / (6**i - 3**i) for i in range(2, m)]
+plt.plot(power_ratio)
 plt.yscale('log')
 plt.ylabel('Behaviour of (6^k- 4^k) / (6^k - 3^k)')
 plt.xlabel('k')
 plt.legend(['1 - (6^k- 4^k) / (6^k - 3^k)'])
+
+from decimal import *
+a = 3
+b = a - 1
+m = 1750
+
+
+def diffa(a, b):
+    getcontext().prec = 1000
+    a = Decimal(a)
+    b = Decimal(b)
+    return [int(a**i / b**i) * (b**i - 1) / (a**i - b**i) - 1 for i in range(2, m)]
+
+
+diff = diffa(a, b)
+plt.plot(diff)
+plt.yscale('log')

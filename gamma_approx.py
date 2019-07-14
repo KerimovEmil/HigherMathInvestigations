@@ -26,6 +26,18 @@ e = decimal.Decimal("2.718281828459045235360287471352662497757247093699959574966
                     "52096183690888707016768396424378140592714563549061303107208510383750510115747704171898610687396965"
                     "5212671546889570350354")
 
+gamma = decimal.Decimal('0.57721566490153286060651209008240243104215933593992359880576723488486772677766467093694706329'
+                        '1746749514631447249807082480960504014486542836224173997644923536253500333742937337737673942792'
+                        '5952582470949160087352039481656708532331517766115286211995015079847937450857057400299213547861'
+                        '4669402960432542151905877553526733139925401296742051375413954911168510280798423487758720503843'
+                        '1093997361372553060889331267600172479537836759271351577226102734929139407984301034177717780881'
+                        '5495706610750101619166334015227893586796549725203621287922655595366962817638879272680132431010'
+                        '4765059637039473949576389065729679296010090151251959509222435014093498712282479497471956469763'
+                        '1850667612906381105182419744486783638086174945516989279230187739107294578155431600500218284409'
+                        '6053772434203285478367015177394398700302370339518328690001558193988042707411542227819716523011'
+                        '0735658339673487176504919418123000406546931429992977795693031005030863034185698032310836916400'
+                        '258929708909854868257773642882539549258736295961332985747393023734388470703702844129')
+
 d_2 = decimal.Decimal('2')
 d_4 = decimal.Decimal('4')
 d_5 = decimal.Decimal('5')
@@ -144,17 +156,48 @@ class RobbinsApproximation:
         return 'Robbins approximation, (ln(2) + ln(pi)+ ln(x))/2 + x(lnx-1) + 1/(12x + (0 OR 1))'
 
 
+class XinLi_ChaoPingChenApproximation:
+    """"https://www.emis.de/journals/JIPAM/images/264_06_JIPAM/264_06.pdf"""
+    def __init__(self, x, c_obj):
+        self.x = x
+        self.c_obj = c_obj
+
+        self.common = ((x+1)/e)**(x+1) * e
+        # self.ln_common = x*self.c_obj.lnx - x + 1
+        self.ln_x1 = (x+1).ln()
+        self.ln_common = (x+1)*self.ln_x1 - x
+
+    def lb(self):
+        """Lower bound"""
+        return self.common * (self.x + 1)**(-gamma)
+
+    def ub(self):
+        """Upper bound"""
+        return self.common * (self.x + 1)**(-1/d_2)
+
+    def ln_lb(self):
+        """ln lower bound"""
+        return self.ln_common - gamma*self.ln_x1
+
+    def ln_ub(self):
+        """ln upper bound"""
+        return self.ln_common - self.ln_x1/d_2
+
+    def __repr__(self):
+        return 'Xin Li and Chao-Ping Chen approximation, x^(x-gamma) < Gamma(x)*e^(x-1) < x^(x-1/2)'
+
+
 def f_print(n, lb, a, ub):
     print("n:{:.5}, lower:{}, actual:{}, higher:{}".format(n, lb, a, ub))
     if lb >= a or ub <= a:
-        raise ValueError
+        raise ValueError(lb, a, ub)
     else:
         print("lb_diff:{:.2e}, ub_diff:{:.2e}".format(a - lb, ub - a))
         print("lb_diff_pct:{:.2e}, ub_diff_pct:{:.2e}".format(1 - lb / a, ub / a - 1))
     print('----------------------------------------------------------------------------')
 
 
-def approximation_gamma(max_n):
+def approximation_gamma(max_n, ls_approx):
     # Log gamma
     for i in range(2, max_n+1):
         # context
@@ -169,14 +212,13 @@ def approximation_gamma(max_n):
         print('----------------------------------------------------------------------------')
 
         # Approximations
-        ls_approximations = [RamanujanType, SinhApproximation, RobbinsApproximation]
-        for approx in ls_approximations:
+        for approx in ls_approx:
             approx_obj = approx(x=x, c_obj=common_obj)
             print(approx_obj)
             f_print(x, approx_obj.lb(), actual, approx_obj.ub())
 
 
-def approximation_ln_gamma(max_n):
+def approximation_ln_gamma(max_n, ls_approx):
     # Log gamma
     for i in range(2, max_n+1):
         # context
@@ -191,13 +233,13 @@ def approximation_ln_gamma(max_n):
         print('----------------------------------------------------------------------------')
 
         # Approximations
-        ls_approximations = [RamanujanType, SinhApproximation, RobbinsApproximation]
-        for approx in ls_approximations:
+        for approx in ls_approx:
             approx_obj = approx(x=x, c_obj=common_obj)
             print(approx_obj)
             f_print(x, approx_obj.ln_lb(), actual, approx_obj.ln_ub())
 
 
 if __name__ == '__main__':
-    # approximation_ln_gamma(max_n=20)
-    approximation_gamma(max_n=20)
+    ls_approximations = [RamanujanType, SinhApproximation, RobbinsApproximation, XinLi_ChaoPingChenApproximation]
+    # approximation_ln_gamma(max_n=20, ls_approx=ls_approximations)
+    approximation_gamma(max_n=20, ls_approx=ls_approximations)
