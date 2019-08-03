@@ -24,6 +24,10 @@ class BernoulliNumber:
         if n in self.cache_values:
             return self.cache_values[n]
 
+        if n % 2 != 0 and n != 1:
+            self.cache_values[n] = fractions.Fraction(0, 1)
+            return fractions.Fraction(0, 1)
+
         b_sum = 0
         for k in range(n):
             # b_sum += combin(n + 1, k) * self.get(k)
