@@ -43,6 +43,7 @@ if __name__ == '__main__':
     b = BernoulliNumber()
     assert b.get(0) == 1
     assert b.get(20) == fractions.Fraction(-174611, 330)
+    assert b.get(40) == fractions.Fraction(-261082718496449122051, 13530)
 
     for i in range(21):
         print(i, b.get(i))
