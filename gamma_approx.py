@@ -1,4 +1,5 @@
 import math
+from bernoulli_numbers import BernoulliNumber
 import decimal
 decimal.getcontext().prec = 100
 
@@ -63,8 +64,8 @@ class Common:
         self.lnx = x.ln()
 
         self.c1 = lnpi/2 + x * (self.lnx - 1)
-        self.c2 = self.c1 + (ln2 + self.lnx) / 2
-        self.c3 = (2*pi*x).sqrt() * (x/e)**x  # ln(c1)
+        self.c2 = self.c1 + (ln2 + self.lnx) / 2  # ln(c3)
+        self.c3 = (2*pi*x).sqrt() * (x/e)**x  # e^(c2)
 
 
 class RamanujanType:
@@ -187,6 +188,48 @@ class XinLi_ChaoPingChenApproximation:
         return 'Xin Li and Chao-Ping Chen approximation, x^(x-gamma) < Gamma(x)*e^(x-1) < x^(x-1/2)'
 
 
+class BernoulliType:
+    def __init__(self, x, c_obj, bern_num=7):
+        self.x = x
+        self.common = c_obj.c3
+        self.ln_common = c_obj.c2
+
+        bernoulli_obj = BernoulliNumber()
+        self.ls_b = [decimal.Decimal(float(
+            bernoulli_obj.get(2*i)/(2*i*(2*i-1))))/(x**(2*i - 1))
+                     for i in range(1, bern_num)]
+
+        # since the bernoulli series is alternating
+        # if odd bernoulli number given, then this is an upper bound
+        # if even number then this is a lower bound
+
+        if bern_num % 2 == 1:  # even number, then this is a upper bound
+            self.lower_b = sum(self.ls_b)
+            self.upper_b = sum(self.ls_b[:-1])
+        else:
+            self.lower_b = sum(self.ls_b[:-1])
+            self.upper_b = sum(self.ls_b)
+
+    def lb(self):
+        """Lower bound"""
+        return self.common * e ** self.lower_b
+
+    def ub(self):
+        """Upper bound"""
+        return self.common * e ** self.upper_b
+
+    def ln_lb(self):
+        """ln lower bound"""
+        return self.ln_common + self.lower_b
+
+    def ln_ub(self):
+        """ln upper bound"""
+        return self.ln_common + self.upper_b
+
+    def __repr__(self):
+        return 'Bernoulli type approximation, ln(n)(n + 1/2) - n -ln(2pi) + (1/12n - 1/360n^3 + 1/1260n^5 + O(1/n^7)'
+
+
 def f_print(n, lb, a, ub):
     print("n:{:.5}, lower:{}, actual:{}, higher:{}".format(n, lb, a, ub))
     if lb >= a or ub <= a:
@@ -240,6 +283,7 @@ def approximation_ln_gamma(max_n, ls_approx):
 
 
 if __name__ == '__main__':
-    ls_approximations = [RamanujanType, SinhApproximation, RobbinsApproximation, XinLi_ChaoPingChenApproximation]
-    # approximation_ln_gamma(max_n=20, ls_approx=ls_approximations)
-    approximation_gamma(max_n=20, ls_approx=ls_approximations)
+    ls_approximations = [RamanujanType, SinhApproximation, RobbinsApproximation, XinLi_ChaoPingChenApproximation,
+                         BernoulliType]
+    approximation_ln_gamma(max_n=20, ls_approx=ls_approximations)
+    # approximation_gamma(max_n=20, ls_approx=ls_approximations)
