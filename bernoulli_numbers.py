@@ -1,5 +1,11 @@
+"""B_m = sum_{k=0 to m} (m choose k) B_k"""
 import fractions
-# B_m = sum_{k=0 to m} (m choose k) B_k
+from scipy.special import comb
+
+
+def binomial_coefficient(n, r):
+    # return combin(n, r)
+    return comb(n, r, exact=True)
 
 
 def combin(n, r):
@@ -31,7 +37,7 @@ class BernoulliNumber:
         b_sum = 0
         for k in range(n):
             # b_sum += combin(n + 1, k) * self.get(k)
-            choose_k = fractions.Fraction(combin(n+1, k))
+            choose_k = fractions.Fraction(binomial_coefficient(n+1, k))
             b_sum += choose_k * self.get(k)
         # b_sum *= -1/(n+1)
         b_sum *= fractions.Fraction(-1, n+1)
