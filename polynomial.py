@@ -34,14 +34,34 @@ class BasicPolynomial:
         return BasicPolynomial(dc)
 
     def __mul__(self, other):
-        dc = dict()
-        for p1, c1 in self.dc_powers.items():
-            for p2, c2 in other.dc_powers.items():
-                p = p1 + p2
-                c = c1*c2
-                dc[p] = c + dc.get(p, 0)
+        if isinstance(other, BasicPolynomial):
+            dc = dict()
+            for p1, c1 in self.dc_powers.items():
+                for p2, c2 in other.dc_powers.items():
+                    p = p1 + p2
+                    c = c1*c2
+                    dc[p] = c + dc.get(p, 0)
 
+        elif isinstance(other, (int, float)):
+            dc = {p: c*other for p, c in self.dc_powers.items()}
+        else:
+            raise NotImplementedError(type(other))
         return BasicPolynomial(dc)
+
+    def __pow__(self, power, modulo=None):
+        if not isinstance(power, int):
+            raise NotImplementedError('Non-Integer power')
+        if power == 0:
+            return 1
+        elif power < 0:
+            return NotImplementedError('Negative power')
+        elif power == 1:
+            return self
+        else:
+            ans = self
+            for i in range(power-1):
+                ans *= self
+            return ans
 
     def __eq__(self, other):
         if self.is_constant() and isinstance(other, (int, float)):
@@ -100,7 +120,7 @@ class BasicPolynomial:
         This method is called when repr() function is invoked on the object, in that case, __repr__()
         function must return a String otherwise error will be thrown.
         """
-        return self.dc_powers
+        return str(self.dc_powers)
 
 
 class TestPolynomial(unittest.TestCase):
@@ -133,9 +153,10 @@ class TestPolynomial(unittest.TestCase):
             self.assertEqual(-2, poly_3.q_eval(0, debug=True))
             # 2 - x + x^3 -> 2 - 1 + 1 = 2
             self.assertEqual(2, poly_2.q_eval(0, debug=True))
-
         with self.subTest('q_eval t=1'):  # t=1 -> q=-1
             # -3/x + 2 - x -> 3 + 2 +1 = 6
             self.assertEqual(6, poly_3.q_eval(1, debug=True))
             # 2 - x + x^3 -> 2 + 1 - 1 = 2
             self.assertEqual(2, poly_2.q_eval(1, debug=True))
+        with self.subTest('power'):
+            self.assertEqual(BasicPolynomial({5: 1}), poly_x**5)
