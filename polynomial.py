@@ -9,9 +9,13 @@ class BasicPolynomial:
             dc_powers: dictionary of coefficients and powers
             v: which string variable to use
         """
+        self.v = v
+
         # remove 0's
         self.dc_powers = {p: c for p, c in dc_powers.items() if c != 0}
-        self.v = v
+
+        # change floats to ints if possible
+        self.dc_powers = {p: int(c) if int(c) == c else c for p, c in self.dc_powers.items()}
 
     def __call__(self, x):
         ans = 0
