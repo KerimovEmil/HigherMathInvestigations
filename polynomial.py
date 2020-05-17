@@ -140,6 +140,10 @@ class BasicPolynomial:
 
     __rmul__ = __mul__
 
+    def degree(self):
+        return max(self.dc_powers.keys())
+
+
 class TestPolynomial(unittest.TestCase):
 
     def test_custom_polynomial(self):
