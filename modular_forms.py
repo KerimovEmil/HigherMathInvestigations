@@ -49,14 +49,15 @@ def print_ramanujan_tau_function(delta, N):
 def main():
     approx = 10
     # print('E_4 = {}'.format(E(4, approx)))
-    # print('E_4^3 = {}'.format(E(4, approx)**3))
-    #
-    # print('E_6 = {}'.format(E(6, approx)))
-    # print('E_6^2 = {}'.format(E(6, approx)**2))
+    print('E_4^3 = {}'.format(E(4, approx)**3))
+    print('1 / E_4^3 = {}'.format((E(4, approx)**3).invert(approx)))
+
+    print('E_6 = {}'.format(E(6, approx)))
+    print('E_6^2 = {}'.format(E(6, approx)**2))
 
     delta = discriminant_modular_form(approx)
     print('Delta = {}'.format(delta))
-    print_ramanujan_tau_function(delta, approx)
+    # print_ramanujan_tau_function(delta, approx)
 
     # j_func = j_invariant(approx)
     # print('j = {}'.format(j_func))

@@ -33,10 +33,15 @@ class BasicPolynomial:
 
     def __add__(self, other):
         dc = self.dc_powers.copy()
-        for p, c in other.dc_powers.items():
-            dc[p] = dc.get(p, 0) + c
-        if self.v != other.v:
-            raise Warning('variable type not consistent')
+        if isinstance(other, BasicPolynomial):
+            for p, c in other.dc_powers.items():
+                dc[p] = dc.get(p, 0) + c
+            if self.v != other.v:
+                raise Warning('variable type not consistent')
+        elif isinstance(other, (int, float)):
+            dc[0] = other + dc.get(0, 0)
+        else:
+            raise NotImplementedError
         return BasicPolynomial(dc, self.v)
 
     def __sub__(self, other):
@@ -63,6 +68,22 @@ class BasicPolynomial:
         else:
             raise NotImplementedError(type(other))
         return BasicPolynomial(dc, self.v)
+
+    def invert(self, approx_N=10):
+        ans = 0
+        for i in range(approx_N + 1):
+            ans = ans + (1 - self)**i
+        return ans
+
+    def __truediv__(self, other, approx_N=10):
+        if isinstance(other, BasicPolynomial):
+            inverse = other.invert(approx_N)
+            return self*inverse
+        elif isinstance(other, (int, float)):
+            dc = {p: c / other for p, c in self.dc_powers.items()}
+            return BasicPolynomial(dc, self.v)
+        else:
+            raise NotImplementedError
 
     def __pow__(self, power, modulo=None):
         if not isinstance(power, int):
@@ -138,10 +159,31 @@ class BasicPolynomial:
         """
         return str(self.dc_powers)
 
+    def __neg__(self):
+        dc = {p: -c for p, c in self.dc_powers.items()}
+        return BasicPolynomial(dc, self.v)
+
+    def __rsub__(self, other):
+        """Since __rsub__() only gets called if other is not of type Fraction, we don't need any type checking."""
+        if isinstance(other, (int, float)):
+            return BasicPolynomial({0: other}, self.v) - self
+        else:
+            raise NotImplementedError
+
     __rmul__ = __mul__
+    __radd__ = __add__
 
     def degree(self):
         return max(self.dc_powers.keys())
+
+    def __int__(self):
+        return self.dc_powers.get(0, 0)
+
+    def __mod__(self, other):
+        if not isinstance(other, int):
+            raise NotImplementedError
+        dc = {p: c % other for p, c in self.dc_powers.items()}
+        return BasicPolynomial(dc, self.v)
 
 
 class TestPolynomial(unittest.TestCase):
@@ -181,3 +223,6 @@ class TestPolynomial(unittest.TestCase):
             self.assertEqual(2, poly_2.q_eval(1, debug=True))
         with self.subTest('power'):
             self.assertEqual(BasicPolynomial({5: 1}), poly_x**5)
+        with self.subTest('inverse'):
+            # 1/(1-x) = 1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + ...
+            self.assertEqual(BasicPolynomial({0: 1, 1: -1}).invert(5), BasicPolynomial({i: 1 for i in range(6)}))
