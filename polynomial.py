@@ -3,9 +3,15 @@ from cmath import exp, pi
 
 
 class BasicPolynomial:
-    def __init__(self, dc_powers):
+    def __init__(self, dc_powers, v='x'):
+        """
+        Args:
+            dc_powers: dictionary of coefficients and powers
+            v: which string variable to use
+        """
         # remove 0's
         self.dc_powers = {p: c for p, c in dc_powers.items() if c != 0}
+        self.v = v
 
     def __call__(self, x):
         ans = 0
@@ -25,13 +31,17 @@ class BasicPolynomial:
         dc = self.dc_powers.copy()
         for p, c in other.dc_powers.items():
             dc[p] = dc.get(p, 0) + c
-        return BasicPolynomial(dc)
+        if self.v != other.v:
+            raise Warning('variable type not consistent')
+        return BasicPolynomial(dc, self.v)
 
     def __sub__(self, other):
         dc = self.dc_powers.copy()
         for p, c in other.dc_powers.items():
             dc[p] = dc.get(p, 0) - c
-        return BasicPolynomial(dc)
+        if self.v != other.v:
+            raise Warning('variable type not consistent')
+        return BasicPolynomial(dc, self.v)
 
     def __mul__(self, other):
         if isinstance(other, BasicPolynomial):
@@ -41,12 +51,14 @@ class BasicPolynomial:
                     p = p1 + p2
                     c = c1*c2
                     dc[p] = c + dc.get(p, 0)
+            if self.v != other.v:
+                raise Warning('variable type not consistent')
 
         elif isinstance(other, (int, float)):
             dc = {p: c*other for p, c in self.dc_powers.items()}
         else:
             raise NotImplementedError(type(other))
-        return BasicPolynomial(dc)
+        return BasicPolynomial(dc, self.v)
 
     def __pow__(self, power, modulo=None):
         if not isinstance(power, int):
@@ -88,28 +100,28 @@ class BasicPolynomial:
                     ret += ' - '
             if abs(c) == 1:
                 if p == 1:
-                    ret += 'x'
+                    ret += self.v
                 elif p == 0:
                     ret += '{}'.format(abs(c))
                 elif p < 0:
                     if p == -1:
-                        ret += '1/x'
+                        ret += '1/{}'.format(self.v)
                     else:
-                        ret += '1/x^{}'.format(abs(p))
+                        ret += '1/{}^{}'.format(self.v, abs(p))
                 else:
-                    ret += 'x^{}'.format(p)
+                    ret += '{}^{}'.format(self.v, p)
             else:
                 if p == 1:
-                    ret += '{}x'.format(abs(c))
+                    ret += '{}{}'.format(abs(c), self.v)
                 elif p == 0:
                     ret += '{}'.format(abs(c))
                 elif p < 0:
                     if p == -1:
-                        ret += '{}/x'.format(abs(c))
+                        ret += '{}/{}'.format(abs(c), self.v)
                     else:
-                        ret += '{}/x^{}'.format(abs(c), abs(p))
+                        ret += '{}/{}^{}'.format(abs(c), self.v, abs(p))
                 else:
-                    ret += '{}x^{}'.format(abs(c), p)
+                    ret += '{}{}^{}'.format(abs(c), self.v, p)
 
         return ret
 
@@ -122,6 +134,7 @@ class BasicPolynomial:
         """
         return str(self.dc_powers)
 
+    __rmul__ = __mul__
 
 class TestPolynomial(unittest.TestCase):
 
