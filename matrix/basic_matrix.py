@@ -1,30 +1,89 @@
 import unittest
 
 
+class MatrixError(Exception):
+    """An exception class for Matrix"""
+    pass
+
+
 class Matrix:
+    # ls_entries = []
+
     def __init__(self, ls_entries=None):
         self.ls_entries = ls_entries
-        # todo add tuple definition
-        # todo add validation of dimension
 
         self.len_row = len(self.ls_entries)
         self.len_col = len(self.ls_entries[0])
 
+        if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
+            raise MatrixError("Uneven columns")
+
+    def zero_matrix(self, row_dim, col_dim):
+        """
+        Returns a Zero matrix with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <Matrix> of zeros
+        """
+        assert isinstance(row_dim, int) and isinstance(col_dim, int)
+        ls_entries = [[0] * col_dim for _ in range(row_dim)]
+        return self.__class__(ls_entries=ls_entries)
+
+    @staticmethod
+    def identity(size):
+        """
+        Return an identity matrix of size n
+        Args:
+            size: <int> a positive integer representing the size of the identity matrix
+
+        Returns: Identity <Matrix>
+        """
+        assert isinstance(size, int)
+        zero = Matrix.zero_matrix(row_dim=size, col_dim=size)
+        for i in range(size):
+            zero[i][i] = 1
+        return __class__(ls_entries=zero.ls_entries)
+
     def transpose(self):
-        return Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
+        return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
     def __getitem__(self, key):
         return self.ls_entries[key]
 
+    def __rmul__(self, other):
+        # other * self
+        if isinstance(other, (int, float, complex)):
+            return self * other
+        elif isinstance(other, Matrix):
+            # A * B = (B^T * A^T)^T
+            return (self.transpose()*other.transpose()).transpose()
+
     def __mul__(self, other):
         # self * other
-        result = [[0 for _ in range(other.len_col)] for _ in range(self.len_row)]
-        for i in range(self.len_row):
-            # iterate through columns of Y
-            for j in range(other.len_col):
-                # iterate through rows of Y
-                for k in range(other.len_row):
-                    result[i][j] += self[i][k] * other[k][j]
+
+        if isinstance(other, (int, float, complex)):
+            result = [[0 for _ in range(self.len_col)] for _ in range(self.len_row)]
+
+            for row in range(self.len_row):
+                for col in range(self.len_col):
+                    result[row][col] = self.ls_entries[row][col] * other
+
+        elif isinstance(other, Matrix):
+            if self.len_col != other.len_row:
+                raise MatrixError('Multiplication dimension wrong.')
+
+            result = [[0 for _ in range(other.len_col)] for _ in range(self.len_row)]
+            for i in range(self.len_row):
+                # iterate through columns of Y
+                for j in range(other.len_col):
+                    # iterate through rows of Y
+                    for k in range(other.len_row):
+                        result[i][j] += self[i][k] * other[k][j]
+        else:
+            raise MatrixError(f'type: {type(other)} multiplication not supported.')
+
         return Matrix(result)
 
     def __eq__(self, other):
@@ -54,23 +113,36 @@ class Matrix:
         else:  # if even
             return half.__mul__(half).__mod__(mod)
 
-    def det(self):
-        raise NotImplementedError
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
-    def square_root(self):
-        raise NotImplementedError
+    def __pos__(self):
+        return self
 
-    def LU_decomposition(self):
-        raise NotImplementedError
+    def __neg__(self):
+        return -1 * self
 
-    def eigenvectors(self):
-        raise NotImplementedError
+    def __add__(self, other):
+        assert self.len_row == other.len_row
+        assert self.len_col == other.len_col
+        new_matrix = self.zero_matrix(self.len_row, self.len_col)
 
-    def __invert__(self):
-        raise NotImplementedError
+        for row in range(self.len_row):
+            for column in range(self.len_col):
+                new_matrix[row][column] = self[row][column] + other[row][column]
+        return new_matrix
+
+    def minor_matrix(self, remove_row, remove_col):
+        new_matrix_array = [row[:remove_col] + row[remove_col + 1:] for row in
+                            (self[:remove_row] + self[remove_row + 1:])]
+        return self.__class__(ls_entries=new_matrix_array)
 
     def diagonal(self):
-        raise NotImplementedError
+        min_dim = min(self.len_row, self.len_col)
+        result = []
+        for i in range(min_dim):
+            result.append(self.ls_entries[i][i])
+        return result
 
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
@@ -117,3 +189,20 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(B.transpose(), B_t)
         # test double transpose
         self.assertEqual(B.transpose().transpose(), B)
+
+    def test_add(self):
+        # 3x4 matrix
+        B = Matrix(ls_entries=[
+            [5, 8, 1, 2],
+            [6, 7, 3, 0],
+            [4, 5, 9, 1]])
+
+        self.assertEqual(B + B, 2*B)
+
+    def test_identity(self):
+        I = Matrix(ls_entries=[
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]])
+
+        self.assertEqual(Matrix.identity(size=3), I)
