@@ -155,22 +155,26 @@ class Matrix:
         """
         Returns: the LU decomposition of the self.ls_entries matrix
             L, U where [A] = [L][U]
-            L: <list> m x m lower triangular matrix
-            U: <list> upper triangular matrix
+            L: <Matrix> m x m lower triangular matrix
+            U: <Matrix> upper triangular matrix
         """
         L = self.identity(self.len_row).ls_entries  # L is square matrix
         U = [[0] * self.len_col for x in range(self.len_row)]
         A = copy.deepcopy(self.ls_entries)
 
+        # Need to pivot first for stability
         for i in range(self.len_row):
-            U[i][i] = A[i][i]
-            for j in range(i + 1, self.len_row):  # pivot columns
-                L[j][i] = A[j][i] / U[i][i] if A[j][i] != 0 else 0
-                U[i][j] = A[i][j]
-            for j in range(i + 1, self.len_row):  # update matrix after pivoting
-                for k in range(i + 1, self.len_row):
-                    A[j][k] -= (L[j][i] * U[i][k])
-        return L, U
+            max_row_index = np.argmax(abs(np.asarray(A)[i:self.len_row, i])) + i #todo check with Emil if use of np.asarray is allowed
+            A[i], A[max_row_index] = A[max_row_index], A[i]
+
+        for i in range(self.len_row):
+            for j in range(i, self.len_row):  # update matrix after pivoting
+                sum_upper = sum([L[i][k] * U[k][j] for k in range(i)])
+                sum_lower = sum([L[j][k] * U[k][i] for k in range(i)])
+                U[i][j] = A[i][j] - sum_upper
+                L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
+
+        return Matrix(L), Matrix(U)
 
 
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
@@ -182,16 +186,10 @@ class TestMatrix(unittest.TestCase):
             [1, 2, 3],
             [4, 5, 6],
             [7, 8, 9]])
-        L = [[1, 0, 0],
-             [4, 1, 0],
-             [7, 2, 1]]
-        U = [[1, 2, 3],
-             [0, -3, -6],
-             [0, 0, 0]]
 
-        L_test, U_test = A.LU_decomp()
-        self.assertEqual(L, L_test)
-        self.assertEqual(U, U_test)
+        L, U = A.LU_decomp()
+        multiply = L.__mul__(U)
+        self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))
 
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
