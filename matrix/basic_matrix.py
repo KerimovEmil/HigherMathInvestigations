@@ -1,4 +1,6 @@
 import unittest
+import numpy as np  # do not use any numpy matrix functions
+import copy
 
 
 class MatrixError(Exception):
@@ -7,9 +9,13 @@ class MatrixError(Exception):
 
 
 class Matrix:
-    # ls_entries = []
 
     def __init__(self, ls_entries=None):
+
+        # check that input is 2D
+        if len(np.array(ls_entries).shape) != 2:
+            raise MatrixError('Input is not 2 dimensional')
+
         self.ls_entries = ls_entries
 
         self.len_row = len(self.ls_entries)
@@ -18,7 +24,8 @@ class Matrix:
         if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
             raise MatrixError("Uneven columns")
 
-    def zero_matrix(self, row_dim, col_dim):
+    @staticmethod
+    def zero_matrix(row_dim, col_dim):
         """
         Returns a Zero matrix with row and columns
         Args:
@@ -29,7 +36,7 @@ class Matrix:
         """
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         ls_entries = [[0] * col_dim for _ in range(row_dim)]
-        return self.__class__(ls_entries=ls_entries)
+        return Matrix(ls_entries=ls_entries)
 
     @staticmethod
     def identity(size):
@@ -58,7 +65,7 @@ class Matrix:
             return self * other
         elif isinstance(other, Matrix):
             # A * B = (B^T * A^T)^T
-            return (self.transpose()*other.transpose()).transpose()
+            return (self.transpose() * other.transpose()).transpose()
 
     def __mul__(self, other):
         # self * other
@@ -144,15 +151,53 @@ class Matrix:
             result.append(self.ls_entries[i][i])
         return result
 
+    def LU_decomp(self):
+        """
+        Returns: the LU decomposition of the self.ls_entries matrix
+            L, U where [A] = [L][U]
+            L: <list> m x m lower triangular matrix
+            U: <list> upper triangular matrix
+        """
+        L = self.identity(self.len_row).ls_entries  # L is square matrix
+        U = [[0] * self.len_col for x in range(self.len_row)]
+        A = copy.deepcopy(self.ls_entries)
+
+        for i in range(self.len_row):
+            U[i][i] = A[i][i]
+            for j in range(i + 1, self.len_row):  # pivot columns
+                L[j][i] = A[j][i] / U[i][i] if A[j][i] != 0 else 0
+                U[i][j] = A[i][j]
+            for j in range(i + 1, self.len_row):  # update matrix after pivoting
+                for k in range(i + 1, self.len_row):
+                    A[j][k] -= (L[j][i] * U[i][k])
+        return L, U
+
+
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
 
 class TestMatrix(unittest.TestCase):
+    def test_lu_decomposition(self):
+        A = Matrix(ls_entries=[
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]])
+        L = [[1, 0, 0],
+             [4, 1, 0],
+             [7, 2, 1]]
+        U = [[1, 2, 3],
+             [0, -3, -6],
+             [0, 0, 0]]
+
+        L_test, U_test = A.LU_decomp()
+        self.assertEqual(L, L_test)
+        self.assertEqual(U, U_test)
+
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
         B = Matrix(ls_entries=[[1, 0], [0, 1]])
 
-        self.assertEqual(A*B, A)
+        self.assertEqual(A * B, A)
 
     def test_non_equal_multiplication(self):
         # 3x3 matrix
@@ -172,7 +217,7 @@ class TestMatrix(unittest.TestCase):
                 [74, 97, 73, 14],
                 [119, 157, 112, 23]])
 
-        self.assertEqual(A*B, C)
+        self.assertEqual(A * B, C)
 
     def test_transpose(self):
         # 3x4 matrix
@@ -197,7 +242,7 @@ class TestMatrix(unittest.TestCase):
             [6, 7, 3, 0],
             [4, 5, 9, 1]])
 
-        self.assertEqual(B + B, 2*B)
+        self.assertEqual(B + B, 2 * B)
 
     def test_identity(self):
         I = Matrix(ls_entries=[
