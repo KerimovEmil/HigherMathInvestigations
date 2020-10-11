@@ -1,5 +1,6 @@
 from matrix.basic_matrix import Matrix, MatrixError
 import unittest
+import copy
 
 
 class SquareMatrix(Matrix):
@@ -54,8 +55,8 @@ class SquareMatrix(Matrix):
 
         t_minors = minors.transpose()
 
-        for row in range(t_minors.size):
-            for col in range(t_minors.size):
+        for row in range(t_minors.len_row):
+            for col in range(t_minors.len_row):
                 t_minors[row][col] /= determinant
 
         return t_minors
@@ -64,7 +65,33 @@ class SquareMatrix(Matrix):
         raise NotImplementedError
 
     def LU_decomposition(self):
-        raise NotImplementedError
+        """
+        Returns: the LU decomposition of the self.ls_entries matrix
+        self.ls_entries matrix must be square
+            L, U where [A] = [L][U]
+            L: <Matrix> m x m lower triangular matrix
+            U: <Matrix> m x m upper triangular matrix
+        """
+
+        # L and U are both square matrices
+        L = self.identity(self.len_row).ls_entries
+        U = [[0] * self.len_row for x in range(self.len_row)]
+        A = SquareMatrix(copy.deepcopy(self.ls_entries))
+
+        # Need to pivot first for stability
+        for i in range(self.len_row):
+            minor_col_i = list(map(abs, A[i:self.len_row, i]))
+            max_row_index = minor_col_i.index(max(minor_col_i)) + i
+            A[i], A[max_row_index] = A[max_row_index], A[i]
+
+        for i in range(self.len_row):
+            for j in range(i, self.len_row):  # update matrix after pivoting
+                sum_upper = sum([L[i][k] * U[k][j] for k in range(i)])
+                sum_lower = sum([L[j][k] * U[k][i] for k in range(i)])
+                U[i][j] = A[i][j] - sum_upper
+                L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
+
+        return Matrix(L), Matrix(U)
 
     def eigenvectors(self):
         raise NotImplementedError
@@ -81,3 +108,10 @@ class TestSquareMatrix(unittest.TestCase):
 
         A_I = 0.5 * SquareMatrix(ls_entries=[[4, -1, -1], [0, -1, 1], [-2, 3, -1]])
         self.assertEqual(A.inverse(), A_I)
+
+    def test_lu_decomposition(self):
+        A = SquareMatrix(ls_entries=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+        L, U = A.LU_decomposition()
+        multiply = L.__mul__(U)
+        self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))

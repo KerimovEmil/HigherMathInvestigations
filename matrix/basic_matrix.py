@@ -1,5 +1,6 @@
 import unittest
-import copy
+
+
 # no importing numpy
 
 
@@ -26,6 +27,23 @@ class Matrix:
 
         if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
             raise MatrixError("Uneven columns")
+
+    def __getitem__(self, key):
+        if isinstance(key, (int, slice)):
+            return self.ls_entries[key]
+        if len(key) == 2:
+            row, col = key
+            if all(isinstance(i, int) for i in key):
+                return self.ls_entries[row][col]
+            elif any(isinstance(i, slice) for i in key):
+                return [x[col] for x in self.ls_entries[row]]
+            else:
+                raise NotImplemented
+        else:
+            raise NotImplemented
+
+    def __setitem__(self, index, value):
+        self.ls_entries[index] = value
 
     @staticmethod
     def zero_matrix(row_dim, col_dim):
@@ -58,9 +76,6 @@ class Matrix:
 
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
-
-    def __getitem__(self, key):
-        return self.ls_entries[key]
 
     def __rmul__(self, other):
         # other * self
@@ -154,52 +169,11 @@ class Matrix:
             result.append(self.ls_entries[i][i])
         return result
 
-    def LU_decomp(self):
-        """
-        Returns: the LU decomposition of the self.ls_entries matrix
-        self.ls_entries matrix must be square
-            L, U where [A] = [L][U]
-            L: <Matrix> m x m lower triangular matrix
-            U: <Matrix> m x m upper triangular matrix
-        """
-        # check if square
-        if not self.is_square():
-            raise NotImplemented('LU factorization for non-square matrices is not implemented.')
-
-        # L and U are both square matrices
-        L = self.identity(self.len_row).ls_entries
-        U = [[0] * self.len_row for x in range(self.len_row)]
-        A = copy.deepcopy(self.ls_entries)
-
-        # Need to pivot first for stability
-        for i in range(self.len_row):
-            minor_col_i = [abs(x[i]) for k, x in enumerate(A) if k >= i]
-            max_row_index = minor_col_i.index(max(minor_col_i)) + i
-            A[i], A[max_row_index] = A[max_row_index], A[i]
-
-        for i in range(self.len_row):
-            for j in range(i, self.len_row):  # update matrix after pivoting
-                sum_upper = sum([L[i][k] * U[k][j] for k in range(i)])
-                sum_lower = sum([L[j][k] * U[k][i] for k in range(i)])
-                U[i][j] = A[i][j] - sum_upper
-                L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
-
-        return Matrix(L), Matrix(U)
-
 
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
 
 class TestMatrix(unittest.TestCase):
-    def test_lu_decomposition(self):
-        A = Matrix(ls_entries=[
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]])
-
-        L, U = A.LU_decomp()
-        multiply = L.__mul__(U)
-        self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))
 
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
