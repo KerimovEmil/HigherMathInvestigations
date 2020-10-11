@@ -39,7 +39,7 @@ class Matrix:
         """
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         ls_entries = [[0] * col_dim for _ in range(row_dim)]
-        return Matrix(ls_entries=ls_entries)
+        return __class__(ls_entries=ls_entries)
 
     @staticmethod
     def identity(size):
@@ -160,7 +160,7 @@ class Matrix:
         self.ls_entries matrix must be square
             L, U where [A] = [L][U]
             L: <Matrix> m x m lower triangular matrix
-            U: <Matrix> upper triangular matrix
+            U: <Matrix> m x m upper triangular matrix
         """
         # check if square
         if not self.is_square():
