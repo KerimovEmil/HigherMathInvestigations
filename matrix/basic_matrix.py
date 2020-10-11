@@ -1,6 +1,6 @@
 import unittest
-import numpy as np  # do not use any numpy matrix functions
 import copy
+# no importing numpy
 
 
 class MatrixError(Exception):
@@ -13,7 +13,10 @@ class Matrix:
     def __init__(self, ls_entries=None):
 
         # check that input is 2D
-        if len(np.array(ls_entries).shape) != 2:
+        if ls_entries and ls_entries[0]:
+            if any(isinstance(x, list) for x in ls_entries[0]):  # more than 2D
+                raise MatrixError('Input is not 2 dimensional')
+        else:  # 1D
             raise MatrixError('Input is not 2 dimensional')
 
         self.ls_entries = ls_entries
@@ -154,17 +157,24 @@ class Matrix:
     def LU_decomp(self):
         """
         Returns: the LU decomposition of the self.ls_entries matrix
+        self.ls_entries matrix must be square
             L, U where [A] = [L][U]
             L: <Matrix> m x m lower triangular matrix
             U: <Matrix> upper triangular matrix
         """
-        L = self.identity(self.len_row).ls_entries  # L is square matrix
-        U = [[0] * self.len_col for x in range(self.len_row)]
+        # check if square
+        if not self.is_square():
+            raise NotImplemented('LU factorization for non-square matrices is not implemented.')
+
+        # L and U are both square matrices
+        L = self.identity(self.len_row).ls_entries
+        U = [[0] * self.len_row for x in range(self.len_row)]
         A = copy.deepcopy(self.ls_entries)
 
         # Need to pivot first for stability
         for i in range(self.len_row):
-            max_row_index = np.argmax(abs(np.asarray(A)[i:self.len_row, i])) + i #todo check with Emil if use of np.asarray is allowed
+            minor_col_i = [abs(x[i]) for k, x in enumerate(A) if k >= i]
+            max_row_index = minor_col_i.index(max(minor_col_i)) + i
             A[i], A[max_row_index] = A[max_row_index], A[i]
 
         for i in range(self.len_row):
