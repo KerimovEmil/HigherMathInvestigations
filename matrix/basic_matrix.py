@@ -1,15 +1,25 @@
 import unittest
 
 
+# no importing numpy
+
+
 class MatrixError(Exception):
     """An exception class for Matrix"""
     pass
 
 
 class Matrix:
-    # ls_entries = []
 
     def __init__(self, ls_entries=None):
+
+        # check that input is 2D
+        if ls_entries and ls_entries[0]:
+            if any(isinstance(x, list) for x in ls_entries[0]):  # more than 2D
+                raise MatrixError('Input is not 2 dimensional')
+        else:  # 1D
+            raise MatrixError('Input is not 2 dimensional')
+
         self.ls_entries = ls_entries
 
         self.len_row = len(self.ls_entries)
@@ -18,7 +28,25 @@ class Matrix:
         if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
             raise MatrixError("Uneven columns")
 
-    def zero_matrix(self, row_dim, col_dim):
+    def __getitem__(self, key):
+        if isinstance(key, (int, slice)):
+            return self.ls_entries[key]
+        if len(key) == 2:
+            row, col = key
+            if all(isinstance(i, int) for i in key):
+                return self.ls_entries[row][col]
+            elif any(isinstance(i, slice) for i in key):
+                return [x[col] for x in self.ls_entries[row]]
+            else:
+                raise NotImplemented
+        else:
+            raise NotImplemented
+
+    def __setitem__(self, index, value):
+        self.ls_entries[index] = value
+
+    @staticmethod
+    def zero_matrix(row_dim, col_dim):
         """
         Returns a Zero matrix with row and columns
         Args:
@@ -29,7 +57,7 @@ class Matrix:
         """
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         ls_entries = [[0] * col_dim for _ in range(row_dim)]
-        return self.__class__(ls_entries=ls_entries)
+        return __class__(ls_entries=ls_entries)
 
     @staticmethod
     def identity(size):
@@ -49,16 +77,13 @@ class Matrix:
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
-    def __getitem__(self, key):
-        return self.ls_entries[key]
-
     def __rmul__(self, other):
         # other * self
         if isinstance(other, (int, float, complex)):
             return self * other
         elif isinstance(other, Matrix):
             # A * B = (B^T * A^T)^T
-            return (self.transpose()*other.transpose()).transpose()
+            return (self.transpose() * other.transpose()).transpose()
 
     def __mul__(self, other):
         # self * other
@@ -144,15 +169,17 @@ class Matrix:
             result.append(self.ls_entries[i][i])
         return result
 
+
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
 
 class TestMatrix(unittest.TestCase):
+
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
         B = Matrix(ls_entries=[[1, 0], [0, 1]])
 
-        self.assertEqual(A*B, A)
+        self.assertEqual(A * B, A)
 
     def test_non_equal_multiplication(self):
         # 3x3 matrix
@@ -172,7 +199,7 @@ class TestMatrix(unittest.TestCase):
                 [74, 97, 73, 14],
                 [119, 157, 112, 23]])
 
-        self.assertEqual(A*B, C)
+        self.assertEqual(A * B, C)
 
     def test_transpose(self):
         # 3x4 matrix
@@ -197,7 +224,7 @@ class TestMatrix(unittest.TestCase):
             [6, 7, 3, 0],
             [4, 5, 9, 1]])
 
-        self.assertEqual(B + B, 2*B)
+        self.assertEqual(B + B, 2 * B)
 
     def test_identity(self):
         I = Matrix(ls_entries=[
