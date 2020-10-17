@@ -91,7 +91,33 @@ class SquareMatrix(Matrix):
                 U[i][j] = A[i][j] - sum_upper
                 L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
 
-        return Matrix(L), Matrix(U)
+        return SquareMatrix(L), SquareMatrix(U)
+
+    def char_eqn(self):
+        # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
+        #todo
+        # probably try to get the characteristic eqm using this algorithm
+        # and then use some root finding method to get the eigenvalues...
+        # not sure yet though
+
+    def eigenvalues(self):
+        """
+        Uses power iteration to calculate the eigenvalues
+
+        :return:
+        """
+
+        # get the characteristic equation
+
+
+        # power iteration?
+        # inverse iteration?
+        # figure out how to solve characteristic equation without using numpy
+
+
+
+
+        pass
 
     def eigenvectors(self):
         raise NotImplementedError
