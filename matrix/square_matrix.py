@@ -93,12 +93,44 @@ class SquareMatrix(Matrix):
 
         return SquareMatrix(L), SquareMatrix(U)
 
-    def char_eqn(self):
+    def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal):
+        """
+
+        :return: (n + 1) x n Toeplitz lower triangular matrix
+        """
+        L = Matrix(self.identity(self.size).ls_entries + [[0] * self.size])
+
+        diag_counter = 0
+        for i in range(1, self.size + 1):  # rows
+            for j in range(i):
+                if i - j == 1:
+                    L[i][j] = -a_0_0
+                else:
+                    print('test')
+                    print(principal.__pow__(2))
+                    prince_test = principal.__pow__(2)
+                    print(row_vector.__mul__(prince_test))
+                    # L[i][j] = -row_vector.__mul__(principal).__pow__(diag_counter - 2).__mul__(col_vector)
+                diag_counter += 1
+
+        return L
+
+    def char_eqn_berkowitz(self):
         # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
-        #todo
+        # todo
         # probably try to get the characteristic eqm using this algorithm
         # and then use some root finding method to get the eigenvalues...
         # not sure yet though
+        A = SquareMatrix(copy.deepcopy(self.ls_entries))
+        for i in range(self.size):
+            # row_vector = Matrix([A[i][x] for x in range(1, self.size)])
+            row_vector = Matrix([[2, 1]])
+            col_vector = Matrix([A[:, i]])
+            principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != i] for j in range(self.size) if
+                                j != i])  # todo make this cleaner
+            a_elem = A[0][0]
+            C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal)
+        return 0
 
     def eigenvalues(self):
         """
@@ -109,13 +141,9 @@ class SquareMatrix(Matrix):
 
         # get the characteristic equation
 
-
         # power iteration?
         # inverse iteration?
         # figure out how to solve characteristic equation without using numpy
-
-
-
 
         pass
 
