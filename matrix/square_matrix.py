@@ -98,9 +98,19 @@ class SquareMatrix(Matrix):
 
         :return: (n + 1) x n Toeplitz lower triangular matrix
         """
-        L = Matrix(self.identity(self.size).ls_entries + [[0] * self.size])
+        size = len(principal.ls_entries) + 1  # size of the matrix that the row, vector, and principal were extracted
+        L = Matrix(self.identity(self.size).ls_entries + [[0] * size])
 
-        diag_counter = 0
+        principal_pows = [principal.__pow__(x) for x in range(1, size - 1)]
+        print(len(principal.ls_entries))
+        # first and second diagonals will just be -a11 and the -RS (no principal)
+        # then the ones after will use the principal pows times the -RS
+        # then do the loop to put values in, might be able to do the i-j is a certain value concept, not that sure yet
+
+
+
+        print(principal_pows)
+        diag_vals = []
         for i in range(1, self.size + 1):  # rows
             for j in range(i):
                 if i - j == 1:
@@ -111,7 +121,6 @@ class SquareMatrix(Matrix):
                     prince_test = principal.__pow__(2)
                     print(row_vector.__mul__(prince_test))
                     # L[i][j] = -row_vector.__mul__(principal).__pow__(diag_counter - 2).__mul__(col_vector)
-                diag_counter += 1
 
         return L
 
