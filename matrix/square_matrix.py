@@ -98,52 +98,48 @@ class SquareMatrix(Matrix):
 
         :return: (n + 1) x n Toeplitz lower triangular matrix
         """
-        size = len(principal.ls_entries) + 1  # size of the matrix that the row, vector, and principal were extracted
-        L = Matrix(self.identity(self.size).ls_entries + [[0] * size])
+        size = len(principal.ls_entries) + 2  # size of the matrix that the row, vector, and principal were extracted
+        L = Matrix(self.identity(size).ls_entries + [[0] * size])
+        products = [-a_0_0, -row_vector.__mul__(col_vector.transpose())[0][0]]
 
-        principal_pows = [principal.__pow__(x) for x in range(1, size - 1)]
-        print(len(principal.ls_entries))
-        # first and second diagonals will just be -a11 and the -RS (no principal)
-        # then the ones after will use the principal pows times the -RS
-        # then do the loop to put values in, might be able to do the i-j is a certain value concept, not that sure yet
+        if size > 3:
+            principal_pows = [principal] + [principal.__pow__(x) for x in range(2, size - 1)]
+            products += [-row_vector.__mul__(x).__mul__(col_vector.transpose())[0][0] for x in principal_pows]
 
-
-
-        print(principal_pows)
-        diag_vals = []
-        for i in range(1, self.size + 1):  # rows
+        for i in range(1, size):  # rows
             for j in range(i):
-                if i - j == 1:
-                    L[i][j] = -a_0_0
-                else:
-                    print('test')
-                    print(principal.__pow__(2))
-                    prince_test = principal.__pow__(2)
-                    print(row_vector.__mul__(prince_test))
-                    # L[i][j] = -row_vector.__mul__(principal).__pow__(diag_counter - 2).__mul__(col_vector)
+                if i - j > 0:
+                    L[i][j] = products[(i - j) - 1]
 
         return L
 
     def char_eqn_berkowitz(self):
         # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
-        # todo
-        # probably try to get the characteristic eqm using this algorithm
-        # and then use some root finding method to get the eigenvalues...
-        # not sure yet though
         A = SquareMatrix(copy.deepcopy(self.ls_entries))
-        for i in range(self.size):
-            # row_vector = Matrix([A[i][x] for x in range(1, self.size)])
-            row_vector = Matrix([[2, 1]])
-            col_vector = Matrix([A[:, i]])
-            principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != i] for j in range(self.size) if
-                                j != i])  # todo make this cleaner
+        C_ls = []
+        for i in range(self.size):  # todo fix this condition for the subsequent principal matrices 
+            row_vector = Matrix([A[0, 1:]])
+            col_vector = Matrix([A[1:, 0]])
+            principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
+                                j != 0])
             a_elem = A[0][0]
+            A = principal
             C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal)
-        return 0
+            C_ls.append(C)
+
+        print(*[x.ls_entries for x in C_ls], sep='\n')
+
+        result = C_ls[0]
+        C_ls.pop(0)
+        while C_ls:
+            result.__mul__(C_ls[0])
+            C_ls.pop(0)
+
+        return result
 
     def eigenvalues(self):
         """
-        Uses power iteration to calculate the eigenvalues
+        Use some numerical root solving to get the roots of the characteristic equation
 
         :return:
         """
