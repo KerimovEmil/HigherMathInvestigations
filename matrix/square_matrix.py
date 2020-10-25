@@ -93,46 +93,47 @@ class SquareMatrix(Matrix):
 
         return SquareMatrix(L), SquareMatrix(U)
 
-    def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal):
+    def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal, col_num):
         """
 
         :return: (n + 1) x n Toeplitz lower triangular matrix
         """
-        size = len(principal.ls_entries) + 2  # size of the matrix that the row, vector, and principal were extracted
-        L = Matrix(self.identity(size).ls_entries + [[0] * size])
+        row_num = col_num + 1  # number of rows of Toeplitz matrix
+        L = Matrix(self.identity(col_num).ls_entries + [[0] * (col_num)])
         products = [-a_0_0, -row_vector.__mul__(col_vector.transpose())[0][0]]
 
-        if size > 3:
-            principal_pows = [principal] + [principal.__pow__(x) for x in range(2, size - 1)]
+        if row_num > 3:
+            principal_pows = [principal] + [principal.__pow__(x) for x in range(2, col_num)]
             products += [-row_vector.__mul__(x).__mul__(col_vector.transpose())[0][0] for x in principal_pows]
 
-        for i in range(1, size):  # rows
-            for j in range(i):
+        for i in range(1, row_num):
+            for j in range(col_num):
                 if i - j > 0:
                     L[i][j] = products[(i - j) - 1]
-
         return L
 
     def char_eqn_berkowitz(self):
         # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
         A = SquareMatrix(copy.deepcopy(self.ls_entries))
         C_ls = []
-        for i in range(self.size):  # todo fix this condition for the subsequent principal matrices 
+        for i in range(self.size - 1):
             row_vector = Matrix([A[0, 1:]])
             col_vector = Matrix([A[1:, 0]])
             principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
                                 j != 0])
             a_elem = A[0][0]
-            A = principal
-            C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal)
+            C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal, col_num=len(A.ls_entries))
             C_ls.append(C)
+            A = principal
 
-        print(*[x.ls_entries for x in C_ls], sep='\n')
+        # last one is just [1,-a,1,1]
+        C_ls.append(Matrix(ls_entries=[[1, -A[0][0]]]).transpose())
 
         result = C_ls[0]
         C_ls.pop(0)
+
         while C_ls:
-            result.__mul__(C_ls[0])
+            result = result.__mul__(C_ls[0])
             C_ls.pop(0)
 
         return result
