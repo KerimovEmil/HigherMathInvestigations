@@ -62,9 +62,6 @@ class SquareMatrix(Matrix):
 
         return t_minors
 
-    def square_root(self):
-        raise NotImplementedError
-
     def LU_decomposition(self):
         """
         Returns: the LU decomposition of the self.ls_entries matrix
@@ -96,15 +93,19 @@ class SquareMatrix(Matrix):
 
     def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal, col_num):
         """
-        Gets the (n+1) x n Toeplitz matrix associated with a n x n matrix, already partitioned into its row and column
-        vectors and principal submatrix
+        Gets the (n+1) x n Toeplitz matrix associated with a n x n matrix, already partitioned into its first element,
+        row and column vectors, and principal submatrix
+
+        The n x n vector is partitioned per below:
+        A = |a_0_0     |row_vector|
+            |col_vector|principal |
 
         Args:
-            a_0_0:
-            row_vector:
-            col_vector:
-            principal:
-            col_num:
+            a_0_0: <int> or <float> element A[0][0] of the n x n matrix
+            row_vector: <Matrix> row vector of the n x n  matrix
+            col_vector: <Matrix> column vector of the n x n matrix
+            principal: <Matrix> principal submatrix of the n x n matrix
+            col_num: <int> number of columns in the Toeplitz matrix, equal to n
         Returns:
             L: <Matrix> (n + 1) x n Toeplitz lower triangular matrix
 
@@ -115,10 +116,12 @@ class SquareMatrix(Matrix):
         L = Matrix(self.identity(col_num).ls_entries + [[0] * (col_num)])
         products = [-a_0_0, -row_vector.__mul__(col_vector.transpose())[0][0]]
 
+        # get the diagonal entries where taking the power of the principal submatrix is required
         if row_num > 3:
             principal_pows = [principal] + [principal.__pow__(x) for x in range(2, col_num)]
             products += [-row_vector.__mul__(x).__mul__(col_vector.transpose())[0][0] for x in principal_pows]
 
+        # Assign values to the diagonals
         for i in range(1, row_num):
             for j in range(col_num):
                 if i - j > 0:
@@ -126,11 +129,19 @@ class SquareMatrix(Matrix):
         return L
 
     def char_eqn_berkowitz(self):
+        """
+        Gets the coefficients of the characteristic polynomial using the Berkowitz Algorithm
         # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
+
+
+        Returns:
+            <Matrix> vector containing the coefficients of the characteristic polynomial from highest to lowest degree
+        """
         A = SquareMatrix(copy.deepcopy(self.ls_entries))
         C_ls = []
 
         for i in range(self.size - 1):
+            # partition the n x n matrix accordingly
             row_vector = Matrix([A[0, 1:]])
             col_vector = Matrix([A[1:, 0]])
             principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
@@ -138,14 +149,14 @@ class SquareMatrix(Matrix):
             a_elem = A[0][0]
             C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal, col_num=len(A.ls_entries))
             C_ls.append(C)
-            A = principal
+            A = principal  # next Toeplitz matrix is found for subsequent principal submatrix
 
         # last one is just [1,-a,1,1]
         C_ls.append(Matrix(ls_entries=[[1, -A[0][0]]]).transpose())
 
+        # create the resulting vector that stores the coefficients of the characteristic polynomial
         result = C_ls[0]
         C_ls.pop(0)
-
         while C_ls:
             result = result.__mul__(C_ls[0])
             C_ls.pop(0)
@@ -154,12 +165,19 @@ class SquareMatrix(Matrix):
 
     def eigenvalues(self):
         """
-        :return:
+        Uses the numpy roots function to calculate the roots of the characteristic polynomial
+        Characteristic equation is found using the Berkowitz Algorithm
         """
         char_eqn = self.char_eqn_berkowitz()
-        return roots(char_eqn.ls_entries[0])  # this uses the numpy roots function
+        return list(roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
 
     def eigenvectors(self):
+        raise NotImplementedError
+
+    def diagonalize(self):
+        raise NotImplementedError
+
+    def square_root(self):
         raise NotImplementedError
 
 
