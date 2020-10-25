@@ -1,6 +1,7 @@
 from matrix.basic_matrix import Matrix, MatrixError
 import unittest
 import copy
+from numpy import roots
 
 
 class SquareMatrix(Matrix):
@@ -128,6 +129,7 @@ class SquareMatrix(Matrix):
         # https://en.wikipedia.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm
         A = SquareMatrix(copy.deepcopy(self.ls_entries))
         C_ls = []
+
         for i in range(self.size - 1):
             row_vector = Matrix([A[0, 1:]])
             col_vector = Matrix([A[1:, 0]])
@@ -148,22 +150,14 @@ class SquareMatrix(Matrix):
             result = result.__mul__(C_ls[0])
             C_ls.pop(0)
 
-        return result
+        return result.transpose()
 
     def eigenvalues(self):
         """
-        Use some numerical root solving to get the roots of the characteristic equation
-
         :return:
         """
-
-        # get the characteristic equation
-
-        # power iteration?
-        # inverse iteration?
-        # figure out how to solve characteristic equation without using numpy
-
-        pass
+        char_eqn = self.char_eqn_berkowitz()
+        return roots(char_eqn.ls_entries[0])  # this uses the numpy roots function
 
     def eigenvectors(self):
         raise NotImplementedError
