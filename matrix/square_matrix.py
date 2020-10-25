@@ -1,7 +1,7 @@
 from matrix.basic_matrix import Matrix, MatrixError
 import unittest
 import copy
-from numpy import roots
+from numpy import roots as numpy_roots
 
 
 class SquareMatrix(Matrix):
@@ -169,7 +169,7 @@ class SquareMatrix(Matrix):
         Characteristic equation is found using the Berkowitz Algorithm
         """
         char_eqn = self.char_eqn_berkowitz()
-        return list(roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
+        return list(numpy_roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
 
     def eigenvectors(self):
         raise NotImplementedError
@@ -199,3 +199,21 @@ class TestSquareMatrix(unittest.TestCase):
         L, U = A.LU_decomposition()
         multiply = L.__mul__(U)
         self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))
+
+    def test_eigenvalues(self):
+        ls_entries = [[16, 14, 11, 18, 11],
+                      [15, 14, 8, 15, 10],
+                      [15, 10, 4, 7, 15],
+                      [7, 13, 9, 19, 9],
+                      [12, 4, 19, 8, 9]]
+
+        from numpy.linalg import eig as numpy_eig
+        from numpy import array as numpy_array
+
+        A = SquareMatrix(ls_entries)
+        A_numpy = numpy_array(ls_entries)
+
+        eigs = A.eigenvalues()
+        np_eigs, np_eig_vects = numpy_eig(A_numpy)
+
+        self.assertTrue(all([abs(i - j) <= 1e-5 for i, j in zip(sorted(list(np_eigs)), sorted(eigs))]))
