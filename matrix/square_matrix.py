@@ -95,8 +95,20 @@ class SquareMatrix(Matrix):
 
     def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal, col_num):
         """
+        Gets the (n+1) x n Toeplitz matrix associated with a n x n matrix, already partitioned into its row and column
+        vectors and principal submatrix
 
-        :return: (n + 1) x n Toeplitz lower triangular matrix
+        Args:
+            a_0_0:
+            row_vector:
+            col_vector:
+            principal:
+            col_num:
+        Returns:
+            L: <Matrix> (n + 1) x n Toeplitz lower triangular matrix
+
+        For more info, see:
+        https://handwiki.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm#:~:text=In%20mathematics%2C%20the%20Samuelson%E2%80%93Berkowitz,commutative%20ring%20without%20zero%20divisors.
         """
         row_num = col_num + 1  # number of rows of Toeplitz matrix
         L = Matrix(self.identity(col_num).ls_entries + [[0] * (col_num)])
