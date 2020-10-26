@@ -33,10 +33,12 @@ class Matrix:
             return self.ls_entries[key]
         if len(key) == 2:
             row, col = key
-            if all(isinstance(i, int) for i in key):
+            if all(isinstance(i, int) for i in key) or isinstance(col, slice):
                 return self.ls_entries[row][col]
-            elif any(isinstance(i, slice) for i in key):
+            elif isinstance(row, slice):
                 return [x[col] for x in self.ls_entries[row]]
+            elif all(isinstance(i, slice) for i in key):
+                raise NotImplemented  # TODO implement this case and test against np.array behaviour
             else:
                 raise NotImplemented
         else:
