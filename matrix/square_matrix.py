@@ -47,14 +47,14 @@ class SquareMatrix(Matrix):
                     [-1 * self[1][0] / determinant, self[0][0] / determinant]]
 
         # find matrix of minors
-        minors = self.zero_matrix(row_dim=self.size, col_dim=self.size)
+        ls_minors = self.zero_ls_entries(row_dim=self.size, col_dim=self.size)
 
         for row in range(self.size):
             for col in range(self.size):
                 minor = self.minor_matrix(row, col)
-                minors[row][col] = ((-1) ** (row + col)) * minor.determinant()
+                ls_minors[row][col] = ((-1) ** (row + col)) * minor.determinant()
 
-        t_minors = minors.transpose()
+        t_minors = self.matrix_factory(ls_entries=ls_minors).transpose()
 
         for row in range(t_minors.len_row):
             for col in range(t_minors.len_row):
@@ -74,7 +74,7 @@ class SquareMatrix(Matrix):
         # L and U are both square matrices
         L = self.identity(self.len_row).ls_entries
         U = [[0] * self.len_row for x in range(self.len_row)]
-        A = SquareMatrix(copy.deepcopy(self.ls_entries))
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
 
         # Need to pivot first for stability
         for i in range(self.len_row):
@@ -89,7 +89,7 @@ class SquareMatrix(Matrix):
                 U[i][j] = A[i][j] - sum_upper
                 L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
 
-        return SquareMatrix(L), SquareMatrix(U)
+        return self.matrix_factory(L), self.matrix_factory(U)
 
     def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal, col_num):
         """
@@ -113,7 +113,7 @@ class SquareMatrix(Matrix):
         https://handwiki.org/wiki/Samuelson%E2%80%93Berkowitz_algorithm#:~:text=In%20mathematics%2C%20the%20Samuelson%E2%80%93Berkowitz,commutative%20ring%20without%20zero%20divisors.
         """
         row_num = col_num + 1  # number of rows of Toeplitz matrix
-        L = Matrix(self.identity(col_num).ls_entries + [[0] * (col_num)])
+        L = self.matrix_factory(self.identity(col_num).ls_entries + [[0] * (col_num)])
         products = [-a_0_0, -row_vector.__mul__(col_vector.transpose())[0][0]]
 
         # get the diagonal entries where taking the power of the principal submatrix is required
@@ -137,14 +137,14 @@ class SquareMatrix(Matrix):
         Returns:
             <Matrix> vector containing the coefficients of the characteristic polynomial from highest to lowest degree
         """
-        A = SquareMatrix(copy.deepcopy(self.ls_entries))
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
         C_ls = []
 
         for i in range(self.size - 1):
             # partition the n x n matrix accordingly
-            row_vector = Matrix([A[0, 1:]])
-            col_vector = Matrix([A[1:, 0]])
-            principal = Matrix([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
+            row_vector = self.matrix_factory([A[0, 1:]])
+            col_vector = self.matrix_factory([A[1:, 0]])
+            principal = self.matrix_factory([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
                                 j != 0])
             a_elem = A[0][0]
             C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal, col_num=len(A.ls_entries))
@@ -152,7 +152,7 @@ class SquareMatrix(Matrix):
             A = principal  # next Toeplitz matrix is found for subsequent principal submatrix
 
         # last one is just [1,-a,1,1]
-        C_ls.append(Matrix(ls_entries=[[1, -A[0][0]]]).transpose())
+        C_ls.append(self.matrix_factory(ls_entries=[[1, -A[0][0]]]).transpose())
 
         # create the resulting vector that stores the coefficients of the characteristic polynomial
         result = C_ls[0]

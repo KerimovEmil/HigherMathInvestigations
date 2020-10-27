@@ -1,6 +1,5 @@
 import unittest
 
-
 # no importing numpy
 
 
@@ -28,6 +27,13 @@ class Matrix:
         if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
             raise MatrixError("Uneven columns")
 
+        self.matrix_factory = self.get_matrix_factory()
+
+    def get_matrix_factory(self):
+        if not hasattr(self, 'matrix_factory'):
+            from matrix.choose_matrix_type import MatrixFactory
+            return MatrixFactory()
+
     def __getitem__(self, key):
         if isinstance(key, (int, slice)):
             return self.ls_entries[key]
@@ -47,8 +53,7 @@ class Matrix:
     def __setitem__(self, index, value):
         self.ls_entries[index] = value
 
-    @staticmethod
-    def zero_matrix(row_dim, col_dim):
+    def zero_matrix(self, row_dim, col_dim):
         """
         Returns a Zero matrix with row and columns
         Args:
@@ -57,12 +62,22 @@ class Matrix:
 
         Returns: <Matrix> of zeros
         """
-        assert isinstance(row_dim, int) and isinstance(col_dim, int)
-        ls_entries = [[0] * col_dim for _ in range(row_dim)]
-        return __class__(ls_entries=ls_entries)
+        return self.matrix_factory(ls_entries=self.zero_ls_entries(row_dim, col_dim))
 
     @staticmethod
-    def identity(size):
+    def zero_ls_entries(row_dim, col_dim):
+        """
+        Returns a Zero matrix with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <list> of zeros
+        """
+        assert isinstance(row_dim, int) and isinstance(col_dim, int)
+        return [[0] * col_dim for _ in range(row_dim)]
+
+    def identity(self, size):  # todo see if this should be a new child class
         """
         Return an identity matrix of size n
         Args:
@@ -71,10 +86,10 @@ class Matrix:
         Returns: Identity <Matrix>
         """
         assert isinstance(size, int)
-        zero = Matrix.zero_matrix(row_dim=size, col_dim=size)
+        ls_zero = self.zero_ls_entries(row_dim=size, col_dim=size)
         for i in range(size):
-            zero[i][i] = 1
-        return __class__(ls_entries=zero.ls_entries)
+            ls_zero[i][i] = 1
+        return self.matrix_factory(ls_entries=ls_zero)
 
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
@@ -91,7 +106,7 @@ class Matrix:
         # self * other
 
         if isinstance(other, (int, float, complex)):
-            result = [[0 for _ in range(self.len_col)] for _ in range(self.len_row)]
+            result = self.zero_ls_entries(row_dim=self.len_row, col_dim=self.len_col)
 
             for row in range(self.len_row):
                 for col in range(self.len_col):
@@ -100,8 +115,8 @@ class Matrix:
         elif isinstance(other, Matrix):
             if self.len_col != other.len_row:
                 raise MatrixError('Multiplication dimension wrong.')
+            result = self.zero_ls_entries(row_dim=self.len_row, col_dim=other.len_col)
 
-            result = [[0 for _ in range(other.len_col)] for _ in range(self.len_row)]
             for i in range(self.len_row):
                 # iterate through columns of Y
                 for j in range(other.len_col):
@@ -111,7 +126,7 @@ class Matrix:
         else:
             raise MatrixError(f'type: {type(other)} multiplication not supported.')
 
-        return Matrix(result)
+        return self.matrix_factory(result)
 
     def __eq__(self, other):
         return self.ls_entries == other.ls_entries
@@ -122,6 +137,9 @@ class Matrix:
 
     def is_square(self):
         return self.len_row == self.len_col
+
+    def is_symmetric(self):
+        return self == self.transpose()
 
     def __mod__(self, mod):
         if mod:
@@ -152,12 +170,12 @@ class Matrix:
     def __add__(self, other):
         assert self.len_row == other.len_row
         assert self.len_col == other.len_col
-        new_matrix = self.zero_matrix(self.len_row, self.len_col)
+        ls_new_entries = [[0 for _ in range(self.len_col)] for _ in range(self.len_row)]
 
         for row in range(self.len_row):
             for column in range(self.len_col):
-                new_matrix[row][column] = self[row][column] + other[row][column]
-        return new_matrix
+                ls_new_entries[row][column] = self[row][column] + other[row][column]
+        return self.matrix_factory(ls_new_entries)
 
     def minor_matrix(self, remove_row, remove_col):
         new_matrix_array = [row[:remove_col] + row[remove_col + 1:] for row in
@@ -234,4 +252,27 @@ class TestMatrix(unittest.TestCase):
             [0, 1, 0],
             [0, 0, 1]])
 
-        self.assertEqual(Matrix.identity(size=3), I)
+        self.assertEqual(I.identity(size=3), I)
+
+    def test_symmetric(self):
+        # 3x4 matrix
+        B = Matrix(ls_entries=[
+            [5, 8, 1, 2],
+            [6, 7, 3, 0],
+            [4, 5, 9, 1]])
+
+        self.assertFalse(B.is_symmetric())
+
+        B = Matrix(ls_entries=[
+            [5, 8, 1],
+            [6, 7, 3],
+            [4, 5, 9]])
+
+        self.assertFalse(B.is_symmetric())
+
+        B = Matrix(ls_entries=[
+            [7, 6, 4],
+            [6, 7, 5],
+            [4, 5, 7]])
+
+        self.assertTrue(B.is_symmetric())
