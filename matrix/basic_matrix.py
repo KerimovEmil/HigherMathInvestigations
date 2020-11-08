@@ -1,5 +1,6 @@
 import unittest
 
+
 # no importing numpy
 
 
@@ -39,12 +40,10 @@ class Matrix:
             return self.ls_entries[key]
         if len(key) == 2:
             row, col = key
-            if all(isinstance(i, int) for i in key) or isinstance(col, slice):
-                return self.ls_entries[row][col]
-            elif isinstance(row, slice):
+            if isinstance(row, slice):  # for if either row only or row and col are slices
                 return [x[col] for x in self.ls_entries[row]]
-            elif all(isinstance(i, slice) for i in key):
-                raise NotImplemented  # TODO implement this case and test against np.array behaviour
+            elif all(isinstance(i, int) for i in key):  # for if only col is a slice or neither row and col are slices
+                return self.ls_entries[row][col]
             else:
                 raise NotImplemented
         else:
@@ -188,6 +187,52 @@ class Matrix:
         for i in range(min_dim):
             result.append(self.ls_entries[i][i])
         return result
+
+    @staticmethod
+    def reduced_row_echelon_form(A):
+        A = Matrix.row_echelon_form(A)
+
+        # TODO go from row echelon to reduced row echelon zzz
+        return Matrix(A)
+
+    @staticmethod
+    def row_echelon_form(A):
+        """
+        Converts the input matrix into row echelon form
+
+        Args:
+            A: <Matrix> to put into row echelon form
+        Returns:
+            <Matrix> row echelon form of Matrix A
+        """
+
+        len_col = len(A.ls_entries[0])
+        if not any(A.ls_entries):  # Empty matrix
+            return Matrix(A)  # Returns the final output when we've recursively looped through the entire matrix
+
+        # extract index of first non-zero element in the first column
+        first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
+        first_non_zero_elem_idx = next((i for i, x in enumerate(first_col_elems) if x != 0), False)
+        if first_non_zero_elem_idx is False:  # there are no non-zero elements
+            B = Matrix.row_echelon_form(Matrix(A[:, 1:]))  # proceed to next column
+
+        # pivot rows if the non-zero element is in another row
+        if first_non_zero_elem_idx != 0:
+            pivot_row = A[first_non_zero_elem_idx].copy()
+            A[first_non_zero_elem_idx], A[0] = A[0], pivot_row
+
+        # Gaussion Elimination
+        A[0] = [x / A[0][0] for x in A[0]]
+        if len_col > 2:
+            mult = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
+            A[1:] = Matrix(A[1:]).__add__(mult.__neg__())
+
+        # Recursively reduce the next rows and columns
+        B = Matrix.row_echelon_form(Matrix(A[1:, 1:])) if len_col > 2 else []
+
+        # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
+        # prior columns of zero to maintain the matrix shape (A[1:, :1]
+        return A[:1] + [x + y for x, y in zip(A[1:, :1], B)]
 
 
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
