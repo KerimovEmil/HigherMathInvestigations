@@ -42,7 +42,8 @@ class Matrix:
             row, col = key
             if isinstance(row, slice):  # for if either row only or row and col are slices
                 return [x[col] for x in self.ls_entries[row]]
-            elif all(isinstance(i, int) for i in key):  # for if only col is a slice or neither row and col are slices
+            elif all(isinstance(i, int) for i in key) or isinstance(col,
+                                                                    slice):  # for if only col is a slice or neither row and col are slices
                 return self.ls_entries[row][col]
             else:
                 raise NotImplemented
@@ -190,15 +191,26 @@ class Matrix:
 
     @staticmethod
     def reduced_row_echelon_form(A):
-        A = Matrix.row_echelon_form(A)
+        """
+        Given Matrix A, return the reduced row echelon form
 
-        # TODO go from row echelon to reduced row echelon zzz
-        return Matrix(A)
+        Args:
+            A: <Matrix> to put into row echelon form
+        Returns:
+            <Matrix> in reduced row echelon form
+        """
+        A = Matrix.row_echelon_form(A)
+        len_col = len(A.ls_entries[0])
+
+        for i in reversed(range(1, len_col - 1)):
+            reduction_fact = Matrix([[x * z[0] for x in A[i]] for z in zip(A[:i, i])])
+            A[:i] = Matrix(A[:i]).__add__(reduction_fact.__neg__())
+        return A
 
     @staticmethod
     def row_echelon_form(A):
         """
-        Converts the input matrix into row echelon form
+        Converts the input matrix into row echelon form.  Note, this function is recursive
 
         Args:
             A: <Matrix> to put into row echelon form
@@ -207,8 +219,6 @@ class Matrix:
         """
 
         len_col = len(A.ls_entries[0])
-        if not any(A.ls_entries):  # Empty matrix
-            return Matrix(A)  # Returns the final output when we've recursively looped through the entire matrix
 
         # extract index of first non-zero element in the first column
         first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
@@ -224,15 +234,15 @@ class Matrix:
         # Gaussion Elimination
         A[0] = [x / A[0][0] for x in A[0]]
         if len_col > 2:
-            mult = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
-            A[1:] = Matrix(A[1:]).__add__(mult.__neg__())
+            reduction_fact = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
+            A[1:] = Matrix(A[1:]).__add__(reduction_fact.__neg__())
 
         # Recursively reduce the next rows and columns
         B = Matrix.row_echelon_form(Matrix(A[1:, 1:])) if len_col > 2 else []
 
         # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
         # prior columns of zero to maintain the matrix shape (A[1:, :1]
-        return A[:1] + [x + y for x, y in zip(A[1:, :1], B)]
+        return Matrix(A[:1] + [x + y for x, y in zip(A[1:, :1], B)])
 
 
 # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
