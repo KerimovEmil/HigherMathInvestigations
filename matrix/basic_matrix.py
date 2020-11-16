@@ -249,7 +249,7 @@ class Matrix:
 
 
 class TestMatrix(unittest.TestCase):
-
+#todo MICHELLE Add unittests for the reduced row echlon and row echlon functions
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
         B = Matrix(ls_entries=[[1, 0], [0, 1]])

@@ -2,6 +2,7 @@ from matrix.basic_matrix import Matrix, MatrixError
 import unittest
 import copy
 from numpy import roots as numpy_roots
+import itertools
 
 
 class SquareMatrix(Matrix):
@@ -144,8 +145,9 @@ class SquareMatrix(Matrix):
             # partition the n x n matrix accordingly
             row_vector = self.matrix_factory([A[0, 1:]])
             col_vector = self.matrix_factory([A[1:, 0]])
-            principal = self.matrix_factory([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
-                                j != 0])
+            principal = self.matrix_factory(
+                [[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
+                 j != 0])
             a_elem = A[0][0]
             C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal, col_num=len(A.ls_entries))
             C_ls.append(C)
@@ -172,7 +174,52 @@ class SquareMatrix(Matrix):
         return list(numpy_roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
 
     def eigenvectors(self):
-        raise NotImplementedError
+        """
+
+        DELETE AFTER:
+        np.linalg.eig(np_arr)
+(array([ 58.83444011,   7.90991199,   3.85703574,   1.61848207,
+       -10.2198699 ]), array([[-0.5353104 ,  0.30931754,  0.30174974, -0.04065062, -0.03246036],
+       [-0.47786848,  0.41176689,  0.66749564,  0.78345659,  0.09460916],
+       [-0.39347121, -0.32543656, -0.02559092,  0.18621625,  0.71601608],
+       [-0.4260566 ,  0.207349  , -0.3509878 , -0.52917708, -0.0424597 ],
+       [-0.38566912, -0.76542022, -0.58270862, -0.26426962, -0.68957492]]))
+
+58.83444010710231 [1.0, 0.0, 0.0, 0.0, -1.3880043094064085, -0.0]
+[0.0, 1.0, 0.0, 0.0, -1.239063382838598, -0.0]
+[0.0, 0.0, 1.0, 0.0, -1.0202300265048931, -0.0]
+[0.0, 0.0, 0.0, 1.0, -1.104720544909695, -0.0]
+[0.0, 0.0, 0.0, 0.0, 1.0, -0.0]
+        :return:
+        """
+        eig_vals_ls = self.eigenvalues()
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        I = A.identity(size=A.size)
+        eigs_result = []
+
+        for eig_val in eig_vals_ls:
+            B = A.__add__(eig_val * I.__neg__())
+            # Equate to 0
+            zero_vector = self.zero_matrix(self.size, 1)
+            # add zero vector as end column
+            B = self.matrix_factory(
+                [list(x) for x in [*map(lambda rows: itertools.chain(*rows), zip(*[B, zero_vector]))]])
+            ref = Matrix.row_echelon_form(B)
+
+            # partially reduce further, to second last col
+            for i in reversed(range(1, A.size - 1)):
+                reduction_fact = Matrix([[x * z[0] for x in ref[i]] for z in zip(ref[:i, i])])
+                ref[:i] = Matrix(ref[:i]).__add__(reduction_fact.__neg__())
+
+            eig_vec = ref[:, -2]
+            # normalize
+            norm_fact = (sum([x ** 2 for x in eig_vec])) ** 0.5
+            eig_vec = [x / norm_fact for x in eig_vec]
+
+            # last element is opposite sign
+            eig_vec[-1] *= -1
+            eigs_result.append(eig_vec)
+        return eig_vals_ls, self.matrix_factory(ls_entries=eigs_result).transpose()
 
     def diagonalize(self):
         raise NotImplementedError
@@ -200,7 +247,7 @@ class TestSquareMatrix(unittest.TestCase):
         multiply = L.__mul__(U)
         self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))
 
-    def test_eigenvalues(self):
+    def test_eigenvalues_eigenvectors(self):
         ls_entries = [[16, 14, 11, 18, 11],
                       [15, 14, 8, 15, 10],
                       [15, 10, 4, 7, 15],
@@ -208,12 +255,17 @@ class TestSquareMatrix(unittest.TestCase):
                       [12, 4, 19, 8, 9]]
 
         from numpy.linalg import eig as numpy_eig
-        from numpy import array as numpy_array
+        from numpy import array as numpy_array, allclose
 
         A = SquareMatrix(ls_entries)
         A_numpy = numpy_array(ls_entries)
 
-        eigs = A.eigenvalues()
+        eigs, eig_vects = A.eigenvectors()
         np_eigs, np_eig_vects = numpy_eig(A_numpy)
 
-        self.assertTrue(all([abs(i - j) <= 1e-5 for i, j in zip(sorted(list(np_eigs)), sorted(eigs))]))
+        eig_vects = sorted(eig_vects.transpose().ls_entries, key=lambda x: x[0])
+        np_eig_vects = sorted(np_eig_vects.T, key=lambda x: x[0])
+
+        # Just need to test for the eigenvectors, if those match then the eigenvalues would've also been the same
+        # Tests to the default tolerances of rtol=1e-05, atol=1e-08
+        self.assertTrue(allclose(eig_vects, np_eig_vects))
