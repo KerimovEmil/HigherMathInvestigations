@@ -173,24 +173,14 @@ class SquareMatrix(Matrix):
         char_eqn = self.char_eqn_berkowitz()
         return list(numpy_roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
 
-    def eigenvectors(self):
+    def eigenvalues_eigenvectors(self):
         """
+        Returns the eigenvalues and normalized eigenvectors
 
-        DELETE AFTER:
-        np.linalg.eig(np_arr)
-(array([ 58.83444011,   7.90991199,   3.85703574,   1.61848207,
-       -10.2198699 ]), array([[-0.5353104 ,  0.30931754,  0.30174974, -0.04065062, -0.03246036],
-       [-0.47786848,  0.41176689,  0.66749564,  0.78345659,  0.09460916],
-       [-0.39347121, -0.32543656, -0.02559092,  0.18621625,  0.71601608],
-       [-0.4260566 ,  0.207349  , -0.3509878 , -0.52917708, -0.0424597 ],
-       [-0.38566912, -0.76542022, -0.58270862, -0.26426962, -0.68957492]]))
-
-58.83444010710231 [1.0, 0.0, 0.0, 0.0, -1.3880043094064085, -0.0]
-[0.0, 1.0, 0.0, 0.0, -1.239063382838598, -0.0]
-[0.0, 0.0, 1.0, 0.0, -1.0202300265048931, -0.0]
-[0.0, 0.0, 0.0, 1.0, -1.104720544909695, -0.0]
-[0.0, 0.0, 0.0, 0.0, 1.0, -0.0]
-        :return:
+        Returns:
+            eigenvalues: <list> of eigenvalues
+            eigenvectors: <Matrix> of the normalized eigenvectors where each vector is a column, in the same order as
+            its corresponding eigenvalue in the outputted eigenvalues list
         """
         eig_vals_ls = self.eigenvalues()
         A = self.matrix_factory(copy.deepcopy(self.ls_entries))
@@ -198,27 +188,31 @@ class SquareMatrix(Matrix):
         eigs_result = []
 
         for eig_val in eig_vals_ls:
+
+            # solve (A-lambdaI)x = 0 where x is the eigenvector associated with eigenvalue lambda
             B = A.__add__(eig_val * I.__neg__())
-            # Equate to 0
             zero_vector = self.zero_matrix(self.size, 1)
+
             # add zero vector as end column
             B = self.matrix_factory(
                 [list(x) for x in [*map(lambda rows: itertools.chain(*rows), zip(*[B, zero_vector]))]])
             ref = Matrix.row_echelon_form(B)
 
-            # partially reduce further, to second last col
+            # reduce to second last col into reduced row echelon form
             for i in reversed(range(1, A.size - 1)):
                 reduction_fact = Matrix([[x * z[0] for x in ref[i]] for z in zip(ref[:i, i])])
                 ref[:i] = Matrix(ref[:i]).__add__(reduction_fact.__neg__())
 
             eig_vec = ref[:, -2]
-            # normalize
+            eig_vec[-1] *= -1  # last element is opposite sign
+
+            # normalize the vector to be length 1
             norm_fact = (sum([x ** 2 for x in eig_vec])) ** 0.5
             eig_vec = [x / norm_fact for x in eig_vec]
 
-            # last element is opposite sign
-            eig_vec[-1] *= -1
+            # Append the eigenvector to the result list, such that it is a new row
             eigs_result.append(eig_vec)
+
         return eig_vals_ls, self.matrix_factory(ls_entries=eigs_result).transpose()
 
     def diagonalize(self):
@@ -260,9 +254,10 @@ class TestSquareMatrix(unittest.TestCase):
         A = SquareMatrix(ls_entries)
         A_numpy = numpy_array(ls_entries)
 
-        eigs, eig_vects = A.eigenvectors()
+        eigs, eig_vects = A.eigenvalues_eigenvectors()
         np_eigs, np_eig_vects = numpy_eig(A_numpy)
 
+        # compare the transposes so that can use numpy allclose method
         eig_vects = sorted(eig_vects.transpose().ls_entries, key=lambda x: x[0])
         np_eig_vects = sorted(np_eig_vects.T, key=lambda x: x[0])
 
