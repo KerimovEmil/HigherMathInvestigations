@@ -158,6 +158,17 @@ class Matrix:
         else:  # if even
             return half.__mul__(half).__mod__(mod)
 
+    def elem_pow(self, n):
+        """
+        Raise each element to the power of n
+
+        Args:
+            n: <int> to raise all elements to the power to
+        Returns:
+            <Matrix> raised to the power
+        """
+        return self.matrix_factory([list(map(lambda x: pow(x, n), row)) for row in self.ls_entries])
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -249,7 +260,7 @@ class Matrix:
 
 
 class TestMatrix(unittest.TestCase):
-#todo MICHELLE Add unittests for the reduced row echlon and row echlon functions
+    # todo MICHELLE Add unittests for the reduced row echlon and row echlon functions
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
         B = Matrix(ls_entries=[[1, 0], [0, 1]])

@@ -4,6 +4,8 @@ import copy
 from numpy import roots as numpy_roots
 import itertools
 
+TOL = 1E-10
+
 
 class SquareMatrix(Matrix):
     def __init__(self, ls_entries=None, matrix=None):
@@ -216,10 +218,36 @@ class SquareMatrix(Matrix):
         return eig_vals_ls, self.matrix_factory(ls_entries=eigs_result).transpose()
 
     def diagonalize(self):
-        raise NotImplementedError
+        """
+        Returns the diagonalized matrix B, which is defined as P^-1*A*P where P is the matrix of eigenvectors
+
+        Returns:
+            P: <Matrix> the matrix of eigenvectors
+            B: <Matrix> diagonalization of A
+        """
+        # todo put a check to see if it is diagonizable first
+        _, P = self.eigenvalues_eigenvectors()
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+
+        # diagonalized matrix
+        B = P.inverse().__mul__(A).__mul__(P)
+
+        # OK to put elements as 0 if below tolerance, tolerance constant here is 1E-10
+        for i in range(B.size):
+            B[i] = [0 if abs(elem) <= TOL else elem for elem in B[i]]
+        return P, B
 
     def square_root(self):
-        raise NotImplementedError
+        """
+        Returns the square root of the matrix
+
+        Returns:
+            <Matrix> square root of the original matrix i.e.: A^(1/2) = PB^(1/2)P^(-1) where B is the diagonalized
+            matrix and P is the matrix of eigenvectors
+        """
+        P, B = self.diagonalize()
+        B = B.elem_pow(0.5)
+        return P.__mul__(B).__mul__(P.inverse())
 
 
 class TestSquareMatrix(unittest.TestCase):
@@ -264,3 +292,19 @@ class TestSquareMatrix(unittest.TestCase):
         # Just need to test for the eigenvectors, if those match then the eigenvalues would've also been the same
         # Tests to the default tolerances of rtol=1e-05, atol=1e-08
         self.assertTrue(allclose(eig_vects, np_eig_vects))
+
+    def test_square_root(self):
+        ls_entries = [[16, 14, 11, 18, 11],
+                      [15, 14, 8, 15, 10],
+                      [15, 10, 4, 7, 15],
+                      [7, 13, 9, 19, 9],
+                      [12, 4, 19, 8, 9]]
+
+        from scipy.linalg import sqrtm
+        from numpy import array, allclose
+        A = SquareMatrix(ls_entries=ls_entries)
+        A_np = array(A.ls_entries)
+
+        r_scipy = sqrtm(A_np)
+        r = A.square_root().ls_entries
+        self.assertTrue(allclose(r_scipy, r))
