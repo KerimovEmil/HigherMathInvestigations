@@ -211,15 +211,16 @@ class Matrix:
             <Matrix> in reduced row echelon form
         """
         A = Matrix.row_echelon_form(A)
-        len_col = len(A.ls_entries[0])
+        len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
+        loop_from = len_col if len_col == len_row else len_col - 1
 
-        for i in reversed(range(1, len_col - 1)):
+        for i in reversed(range(1, loop_from)):
             reduction_fact = Matrix([[x * z[0] for x in A[i]] for z in zip(A[:i, i])])
             A[:i] = Matrix(A[:i]).__add__(reduction_fact.__neg__())
         return A
 
     @staticmethod
-    def row_echelon_form(A):
+    def row_echelon_form(A, iter=0, dim_limit=0):
         """
         Converts the input matrix into row echelon form.  Note, this function is recursive
 
@@ -228,8 +229,14 @@ class Matrix:
         Returns:
             <Matrix> row echelon form of Matrix A
         """
+        len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
 
-        len_col = len(A.ls_entries[0])
+        if iter == 0:  # first iteration
+            dim_limit = 1 if len_col == len_row else 2  # to maintain 2 dimensions for matrix operations
+            if len_row > len_col:
+                # TODO implement this case --> right now hitting issues with Matrix dimension restrictions for how the reduction is done
+                # Right now, only if more cols than rows and for square matrix
+                raise NotImplemented
 
         # extract index of first non-zero element in the first column
         first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
@@ -244,23 +251,43 @@ class Matrix:
 
         # Gaussion Elimination
         A[0] = [x / A[0][0] for x in A[0]]
-        if len_col > 2:
+        if len_col > dim_limit:
             reduction_fact = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
             A[1:] = Matrix(A[1:]).__add__(reduction_fact.__neg__())
 
         # Recursively reduce the next rows and columns
-        B = Matrix.row_echelon_form(Matrix(A[1:, 1:])) if len_col > 2 else []
+        if len_col <= dim_limit:
+            print('test')
+        B = Matrix.row_echelon_form(Matrix(A[1:, 1:]), iter + 1, dim_limit) if len_col > dim_limit else [[1.0]]
 
         # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
         # prior columns of zero to maintain the matrix shape (A[1:, :1]
         return Matrix(A[:1] + [x + y for x, y in zip(A[1:, :1], B)])
 
-
-# https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
+    # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
 
 class TestMatrix(unittest.TestCase):
-    # todo MICHELLE Add unittests for the reduced row echlon and row echlon functions
+    def test_reduced_row_echelon(self):
+        import numpy as np
+        from sympy import Matrix as sympy_matrix
+
+        ls_entries_col_g_row = [[14, 0, 11, 3],
+                                [22, 23, 4, 7],
+                                [-12, -34, -3, -4]]
+        ls_entries_square = [[16, 14, 11, 18, 11],
+                             [15, 14, 8, 15, 10],
+                             [15, 10, 4, 7, 15],
+                             [7, 13, 9, 19, 9],
+                             [12, 4, 19, 8, 9]]
+        for ls_entries in [ls_entries_col_g_row, ls_entries_square]:
+            sympy_rref, _ = sympy_matrix(ls_entries).rref()
+
+            A = Matrix(ls_entries)
+            rref = Matrix.reduced_row_echelon_form(A)
+
+            self.assertTrue(np.allclose(rref.ls_entries, np.array(sympy_rref).astype(np.float64)))
+
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
         B = Matrix(ls_entries=[[1, 0], [0, 1]])
