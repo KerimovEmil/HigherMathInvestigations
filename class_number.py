@@ -3,6 +3,8 @@ import unittest
 # http://oeis.org/A000924
 # https://mathworld.wolfram.com/ClassNumber.html
 # https://www.springer.com/gp/book/9780387970370
+# https://arxiv.org/pdf/1704.00902.pdf
+# http://zakuski.utsa.edu/~jagy/indefinite_binary_Buell.pdf
 
 
 # reduced form |b| <= a <= c
@@ -45,10 +47,21 @@ def get_class_number(D, debug=False):
             ls_fac = factors_of_n(temp)
             for fac_tup in ls_fac:
                 if fac_tup[0] >= b and fac_tup[1] >= b:
+                    # todo keep list of reduced forms, to check that these new forms are not reduced
+                    # example (a,b,c) = (1, -1, 12) ~ (1, 1, 12) through using multiplication of T
+                    # T = (1, 1)
+                    #     (0, 1)
+                    # Where A = ( a , b/2)
+                    #         = (b/2,  c )
+                    # A' = T^t * A * T
                     count += 1  # todo figure out why this is not +2, since b and -b both work
                     # print(b, b2, temp, fac_tup)
                     if debug:
                         print(f'b: {b}, a: {fac_tup[0]}, c: {fac_tup[1]}')
+
+        # todo implement reduce solutions method which removes multiples of S and T
+        # S = (0, -1)   T = (1, 1)    , since SL2(Z) = <S, T>
+        #     (1,  0)       (0, 1)
 
     return count
 
