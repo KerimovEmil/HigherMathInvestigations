@@ -131,7 +131,7 @@ def factors_of_n(n):
     return ls_out
 
 
-def get_reduced_forms(D, debug=False, old=False):
+def get_reduced_forms(D, debug=False):
     """Given an <int> D, computes all reduced forms of discriminant = -D of the binary quadratic form"""
     abs_b_max = int((D / 3) ** 0.5)
     if debug:
@@ -149,28 +149,14 @@ def get_reduced_forms(D, debug=False, old=False):
             # ac >= b^2
             ls_fac = factors_of_n(temp)
             for fac_tup in ls_fac:
-                if not old:
-                    quad_form = QuadraticForm(a=fac_tup[0], b=b, c=fac_tup[1])
-                    if quad_form.is_reduced():
-                        ls_potential_reduced_quad_forms.append(quad_form)
-                        if debug:
-                            print(quad_form)
+                quad_form = QuadraticForm(a=fac_tup[0], b=b, c=fac_tup[1])
+                if quad_form.is_reduced():
+                    ls_potential_reduced_quad_forms.append(quad_form)
+                    if debug:
+                        print(quad_form)
+                if b != 0:
                     quad_form = QuadraticForm(a=fac_tup[0], b=-b, c=fac_tup[1])
                     if quad_form.is_reduced():
-                        ls_potential_reduced_quad_forms.append(quad_form)
-                        if debug:
-                            print(quad_form)
-                if old:
-                    quad_form = QuadraticForm(a=fac_tup[0], b=b, c=fac_tup[1])
-                    if fac_tup[0] >= b and fac_tup[1] >= b:
-                        # todo keep list of reduced forms, to check that these new forms are not reduced
-                        # example (a,b,c) = (1, -1, 12) ~ (1, 1, 12) through using multiplication of T
-                        # T = (1, 1)
-                        #     (0, 1)
-                        # Where A = ( a , b/2)
-                        #         = (b/2,  c )
-                        # A' = T^t * A * T
-                        # print(b, b2, temp, fac_tup)
                         ls_potential_reduced_quad_forms.append(quad_form)
                         if debug:
                             print(quad_form)
@@ -182,9 +168,9 @@ def get_reduced_forms(D, debug=False, old=False):
     return ls_potential_reduced_quad_forms
 
 
-def get_class_number(D, debug=False, old=False):
+def get_class_number(D, debug=False):
     """Given an <int> D, computes the class number of discriminant = -D of the binary quadratic form"""
-    ls_reduced = get_reduced_forms(D, debug=debug, old=old)
+    ls_reduced = get_reduced_forms(D, debug=debug)
     # todo filter some reduced forms, see example with D = 47
 
     # sample filtering, which needs to be more advanced
@@ -199,7 +185,7 @@ def get_negative_class_type(max_n, cn):
     ls_out = []
     print(f'---CLASS NUMBER {cn}---')
     for i in range(1, max_n):
-        if get_class_number(i, old=True) == cn:
+        if get_class_number(i) == cn:
             ls_out.append(i)
     return ls_out
 
@@ -213,15 +199,14 @@ def test_factors_n():
 if __name__ == '__main__':
     test_factors_n()
 
-    # print(get_negative_class_type(max_n=170, cn=1))
+    print(get_negative_class_type(max_n=170, cn=1))
     # todo figure out which one is more right
     assert get_negative_class_type(max_n=170, cn=1) == [3, 4, 7, 8, 11, 19, 43, 67, 163]
-    # assert get_negative_class_type(max_n=170, cn=1) == [3, 7, 11, 19, 43, 67, 163]
 
     print(get_negative_class_type(max_n=170, cn=2))
 
     assert get_class_number(47) == 5
-    print('---DEBUG 47---')
+    # print('---DEBUG 47---')
     # print(get_class_number(47, debug=True))
     # D = 47
     #  a   b   c   works
