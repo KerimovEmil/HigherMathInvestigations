@@ -1,3 +1,24 @@
+"""
+Computing the class number which is the sum of reduced form of a given binary quadratic
+
+external links and references:
+    http://oeis.org/A000924
+    https://mathworld.wolfram.com/ClassNumber.html
+    https://www.springer.com/gp/book/9780387970370
+    https://arxiv.org/pdf/1704.00902.pdf
+    http://zakuski.utsa.edu/~jagy/indefinite_binary_Buell.pdf
+    http://www.numbertheory.org/classnos/
+    http://www.numbertheory.org/php/php.html
+    http://matwbn.icm.edu.pl/ksiazki/aa/aa83/aa8341.pdf
+    odd small class numbers:
+      S. Arno, M.L. Robinson, F.S. Wheeler, Imaginary quadratic fields with small odd class number, A
+      cta Arith. 83 (1998) 295-330
+    even small class numbers:
+      From P. Ribenboim, Classical Theory of Algebraic Numbers, p. 636, Springer 2001
+      These are squarefree d, not field discriminants, i.e. -d//4 not -d, unless -d mod 4 == 1
+
+"""
+
 from collections import namedtuple
 from math import gcd
 
@@ -9,23 +30,6 @@ QuadForm = namedtuple('QuadForm', ['a', 'b', 'c'])
 
 def is_int(n): return abs(n - int(n)) < 1e-13
 
-
-# links
-# http://oeis.org/A000924
-# https://mathworld.wolfram.com/ClassNumber.html
-# https://www.springer.com/gp/book/9780387970370
-# https://arxiv.org/pdf/1704.00902.pdf
-# http://zakuski.utsa.edu/~jagy/indefinite_binary_Buell.pdf
-# http://www.numbertheory.org/classnos/
-# http://matwbn.icm.edu.pl/ksiazki/aa/aa83/aa8341.pdf
-# odd small class numbers:
-#   S. Arno, M.L. Robinson, F.S. Wheeler, Imaginary quadratic fields with small odd class number, A
-#   cta Arith. 83 (1998) 295-330
-# even small class numbers:
-#   From P. Ribenboim, Classical Theory of Algebraic Numbers, p. 636, Springer 2001
-#   These are squarefree d, not field discriminants, i.e. -d//4 not -d, unless -d mod 4 == 1
-
-
 # reduced form |b| <= a <= c
 # discriminant = b^2 - 4ac
 # if discriminant = -D
@@ -35,9 +39,13 @@ def is_int(n): return abs(n - int(n)) < 1e-13
 # => 3b^2 <= D
 # b <= sqrt(D/3)
 
+
 class QuadraticForm:
+
     S = array([[0, -1], [1, 0]])
     T = array([[1, 1], [0, 1]])
+    # S = (0, -1)   T = (1, 1)    , since SL2(Z) = <S, T>
+    #     (1,  0)       (0, 1)
 
     def __init__(self, a, b, c):
         assert is_int(a)
@@ -131,13 +139,13 @@ class QuadraticForm:
 
         """
         if by == 'T':
-            V = QuadraticForm.T
+            v = QuadraticForm.T
         elif by == 'S':
-            V = QuadraticForm.S
+            v = QuadraticForm.S
         else:
             raise NotImplementedError(f'Multiply by {by} is not supported yet')
 
-        new_matrix = V.transpose() @ self.matrix_form() @ V
+        new_matrix = v.transpose() @ self.matrix_form() @ v
         assert new_matrix[0][1] == new_matrix[1][0]
         return QuadraticForm(a=int(new_matrix[0][0]), b=int(2 * new_matrix[1][0]), c=int(new_matrix[1][1]))
 
@@ -189,14 +197,6 @@ def factors_of_n(n):
     return ls_out
 
 
-# todo implement this sieve for looping over d's
-#
-# The number d denotes a negative fundamental disriminant or, equivalently, the disriminant of an imaginary
-# quadratic number field. In other
-# words, we have either d = 1 (mod 4) and d is square-free,
-# or
-# 4|d and -d/4 = 2 or 3 (mod 4) and d/4 is square free.
-
 def get_reduced_forms(D, debug=False):
     """Given an <int> D, computes all reduced forms of discriminant = -D of the binary quadratic form"""
     ls_potential_reduced_quad_forms = []
@@ -234,10 +234,6 @@ def get_reduced_forms(D, debug=False):
                         ls_potential_reduced_quad_forms.append(quad_form)
                         if debug:
                             print(quad_form)
-
-        # todo implement reduce solutions method which removes multiples of S and T
-        # S = (0, -1)   T = (1, 1)    , since SL2(Z) = <S, T>
-        #     (1,  0)       (0, 1)
 
     return ls_potential_reduced_quad_forms
 
@@ -283,6 +279,12 @@ def get_negative_class_type(max_n, cn, square_free=False):
 
     for D in iter_loop:
 
+        # The number d denotes a negative fundamental discriminant or, equivalently, the discriminant of an imaginary
+        # quadratic number field. In other words, we have either
+        # d = 1 (mod 4) and d is square-free,
+        # or
+        # 4|d and -d/4 = 2 or 3 (mod 4) and d/4 is square free.
+
         cond_1 = ((-D) % 4 == 1) and is_squarefree(D)
         cond_2 = ((-D) % 4 == 0) and ((-D // 4) % 4 in [2, 3]) and is_squarefree(abs(-D // 4))
 
@@ -314,8 +316,8 @@ if __name__ == '__main__':
     assert class_1 == [3, 4, 7, 8, 11, 19, 43, 67, 163]
 
     class_2 = get_negative_class_type(max_n=430, cn=2)
-    assert class_2 == [5, 6, 10, 13, 15, 22, 35, 37, 51, 58, 91, 115, 123, 187, 235, 267, 403, 427]
     print(class_2)
+    assert class_2 == [5, 6, 10, 13, 15, 22, 35, 37, 51, 58, 91, 115, 123, 187, 235, 267, 403, 427]
 
     class_3 = get_negative_class_type(max_n=1000, cn=3)
     print(class_3)
