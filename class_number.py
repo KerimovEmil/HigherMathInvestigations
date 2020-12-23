@@ -264,7 +264,7 @@ if __name__ == '__main__':
     assert get_negative_class_type(max_n=300, cn=1) == [3, 4, 7, 8, 11, 19, 43, 67, 163]
 
     # 2 -> From P. Ribenboim, Classical Theory of Algebraic Numbers, p. 636, Springer 2001
-    # these are squarefree d, not field discriminants
+    # these are squarefree d, not field discriminants  # these are -d/4 not -d, unless -d mod 4 == 1
     # assert get_negative_class_type(max_n=430, cn=2, square_free=True) == [5,6,10,13,15,22,35,37,51,58,91,115,123,187,235,267,403,427]
 
     # 3 ->  S. Arno, M.L. Robinson, F.S. Wheeler, Imaginary quadratic fields with small odd class number, Acta Arith. 83 (1998) 295-330
