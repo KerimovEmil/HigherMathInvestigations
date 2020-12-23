@@ -127,7 +127,7 @@ class QuadraticForm:
         pass
 
     def __str__(self):
-        return f'a: {self.f.a}, b: {self.f.b}, c: {self.f.c}'
+        return f'a= {self.f.a}, b= {self.f.b}, c= {self.f.c}'
 
     def multiply_by(self, by='T'):
         """
@@ -157,6 +157,34 @@ class QuadraticForm:
     def is_proper(self):
         """Returns boolean if form is 'proper'. This means not all values are scaled by the same integer"""
         return gcd(gcd(self.f.a, self.f.b), self.f.c) == 1
+
+    def __repr__(self):
+        return str(self)
+
+    def function_repr(self):
+        def _add_term(c, term, first=False):
+            if c == 0:
+                return ''
+            # get prefix
+            if first:
+                prefix = ''
+            else:
+                if c > 0:
+                    prefix = ' + '
+                else:
+                    prefix = ' - '
+            # get term
+            if abs(c) == 1:
+                return f'{prefix}{term}'
+            else:
+                return f'{prefix}{abs(c)}{term}'
+
+        out_str = ''
+        out_str += _add_term(self.f.a, 'x^2', first=True)
+        out_str += _add_term(self.f.b, 'xy', first=self.f.a == 0)
+        out_str += _add_term(self.f.c, 'y^2', first=(self.f.a == 0) and (self.f.b == 0))
+
+        return out_str
 
 
 def is_squarefree(n):
@@ -331,8 +359,16 @@ if __name__ == '__main__':
                        259, 291, 323, 355, 435, 483, 555, 595, 627, 667,
                        715, 723, 763, 795, 955, 1003, 1027, 1227, 1243, 1387, 1411, 1435, 1507, 1555]
 
+    # test get_class_number
     assert get_class_number(47) == 5
     assert get_class_number(187) == 2
+
+    # test function_repr
+    assert QuadraticForm(a=0, b=-2, c=0).function_repr() == '2xy'
+    assert QuadraticForm(a=1, b=1, c=1).function_repr() == 'x^2 + xy + y^2'
+    assert QuadraticForm(a=-1, b=-1, c=-1).function_repr() == 'x^2 - xy - y^2'
+    assert QuadraticForm(a=-1, b=-1, c=0).function_repr() == 'x^2 - xy'
+    assert QuadraticForm(a=4, b=-2, c=5).function_repr() == '4x^2 - 2xy + 5y^2'
 
     # print('---DEBUG 47---')
     # print(get_class_number(47, debug=True))
