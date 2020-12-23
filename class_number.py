@@ -336,9 +336,20 @@ def test_factors_n():
     assert factors_of_n(4) == [(1, 4), (2, 2)]
 
 
-if __name__ == '__main__':
-    test_factors_n()
+def test_function_repr():
+    assert QuadraticForm(a=0, b=-2, c=0).function_repr() == '2xy'
+    assert QuadraticForm(a=1, b=1, c=1).function_repr() == 'x^2 + xy + y^2'
+    assert QuadraticForm(a=-1, b=-1, c=-1).function_repr() == 'x^2 - xy - y^2'
+    assert QuadraticForm(a=-1, b=-1, c=0).function_repr() == 'x^2 - xy'
+    assert QuadraticForm(a=4, b=-2, c=5).function_repr() == '4x^2 - 2xy + 5y^2'
 
+
+def test_class_number():
+    assert get_class_number(47) == 5
+    assert get_class_number(187) == 2
+
+
+def test_negative_class_type():
     class_1 = get_negative_class_type(max_n=300, cn=1)
     print(class_1)
     assert class_1 == [3, 4, 7, 8, 11, 19, 43, 67, 163]
@@ -359,16 +370,12 @@ if __name__ == '__main__':
                        259, 291, 323, 355, 435, 483, 555, 595, 627, 667,
                        715, 723, 763, 795, 955, 1003, 1027, 1227, 1243, 1387, 1411, 1435, 1507, 1555]
 
-    # test get_class_number
-    assert get_class_number(47) == 5
-    assert get_class_number(187) == 2
 
-    # test function_repr
-    assert QuadraticForm(a=0, b=-2, c=0).function_repr() == '2xy'
-    assert QuadraticForm(a=1, b=1, c=1).function_repr() == 'x^2 + xy + y^2'
-    assert QuadraticForm(a=-1, b=-1, c=-1).function_repr() == 'x^2 - xy - y^2'
-    assert QuadraticForm(a=-1, b=-1, c=0).function_repr() == 'x^2 - xy'
-    assert QuadraticForm(a=4, b=-2, c=5).function_repr() == '4x^2 - 2xy + 5y^2'
+if __name__ == '__main__':
+    test_factors_n()
+    test_negative_class_type()
+    test_class_number()
+    test_function_repr()
 
     # print('---DEBUG 47---')
     # print(get_class_number(47, debug=True))
