@@ -1,9 +1,12 @@
-import unittest
 from collections import namedtuple
 from numpy import array
 
 # define QuadForm = ax^2 + bxy + cy^2
 QuadForm = namedtuple('QuadForm', ['a', 'b', 'c'])
+
+
+def is_int(n): return abs(n - int(n)) < 1e-13
+
 
 # links
 # http://oeis.org/A000924
@@ -27,6 +30,9 @@ class QuadraticForm:
     T = array([[1, 1], [0, 1]])
 
     def __init__(self, a, b, c):
+        assert is_int(a)
+        assert is_int(b)
+        assert is_int(c)
         self.f = QuadForm(a=a, b=b, c=c)
 
     def discriminant(self):
@@ -103,6 +109,16 @@ class QuadraticForm:
     def __str__(self):
         return f'a: {self.f.a}, b: {self.f.b}, c: {self.f.c}'
 
+    def multiply_T(self):
+        new_matrix = QuadraticForm.T.transpose() @ self.matrix_form() @ QuadraticForm.T
+        assert new_matrix[0][1] == new_matrix[1][0]
+        return QuadraticForm(a=int(new_matrix[0][0]), b=int(2*new_matrix[1][0]), c=int(new_matrix[1][1]))
+
+    def __eq__(self, other):
+        if self.f.a == other.f.a and self.f.b == other.f.b and self.f.c == other.f.c:
+            return True
+        return False
+
 
 def factors_of_n(n):
     """Given an <int> n, return list of tuples of positive integers that multiply to n"""
@@ -170,6 +186,12 @@ def get_class_number(D, debug=False, old=False):
     """Given an <int> D, computes the class number of discriminant = -D of the binary quadratic form"""
     ls_reduced = get_reduced_forms(D, debug=debug, old=old)
     # todo filter some reduced forms, see example with D = 47
+
+    # sample filtering, which needs to be more advanced
+    ls_loop = ls_reduced.copy()
+    for potential in ls_loop:
+        if potential.multiply_T() in ls_reduced:
+            ls_reduced.remove(potential)
     return len(ls_reduced)
 
 
@@ -198,9 +220,9 @@ if __name__ == '__main__':
 
     print(get_negative_class_type(max_n=170, cn=2))
 
+    assert get_class_number(47) == 5
     print('---DEBUG 47---')
-    # this should equal to 5, not 3. Not sure if this is possible to compute.
-    print(get_class_number(47, debug=True))
+    # print(get_class_number(47, debug=True))
     # D = 47
     #  a   b   c   works
     #  1   1   12    Y
@@ -213,6 +235,7 @@ if __name__ == '__main__':
     # note that the solution (1, -1, 12) ~ (1, 1, 12) hence it should not be part of the class number
     # using T = np.array([[1, 1], [0, 1]])
     # we have T' * (1, -1, 12) * T = (1, 1, 12)
+    # since
     # (1 0) * (  1   -1/2) * (1 1) = ( 1  1/2)
     # (1 1)   (-1/2   12 )   (0 1)   (1/2  1 )
 
