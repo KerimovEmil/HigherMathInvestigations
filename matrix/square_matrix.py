@@ -3,6 +3,7 @@ import unittest
 import copy
 from numpy import roots as numpy_roots
 import itertools
+from collections import Counter
 
 TOL = 1E-10
 
@@ -217,6 +218,42 @@ class SquareMatrix(Matrix):
 
         return eig_vals_ls, self.matrix_factory(ls_entries=eigs_result).transpose()
 
+    def is_diagonalizable(self):
+        """
+        Checks if matrix is diagonalizable by checking if the algebraic multiplicity of non-distinct eigenvalues is
+        equal to its geometric multiplicity
+
+        Returns:
+             <bool> True if diagonalizable, False otherwise
+        """
+        # first check whether eigenvalues are distinct
+        eigs_ls = self.eigenvalues()
+        if len(eigs_ls) == len(set(eigs_ls)):
+            return True  # if all eigenvalues are distinct
+
+        algebraic_multiplicities = dict(Counter(eigs_ls))
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        I = A.identity(size=A.size)
+        # check the geometric multiplicity of the non-distinct ones
+        for key, value in algebraic_multiplicities.items():
+            if value == 1:
+                continue
+            B = A.__add__(key * I.__neg__())
+            ref = Matrix.row_echelon_form(B)
+
+            # geometric multiplicity will be the rows without the leading 1
+            len_col = len(ref.ls_entries[0])
+            geo_mult = 0
+            for i in range(len_col):
+                while all(x == 0 for x in A[:, 0]):
+                    ref = Matrix(ref[:, 1:])
+                    if ref[i][i] != 1:
+                        geo_mult += 1
+            if geo_mult != value:
+                return False
+
+        return True
+
     def diagonalize(self):
         """
         Returns the diagonalized matrix B, which is defined as P^-1*A*P where P is the matrix of eigenvectors
@@ -225,9 +262,9 @@ class SquareMatrix(Matrix):
             P: <Matrix> the matrix of eigenvectors
             B: <Matrix> diagonalization of A
         """
-        # todo put a check to see if it is diagonizable first
         _, P = self.eigenvalues_eigenvectors()
         A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        A.is_diagonalizable()  # Check if diagonalizable
 
         # diagonalized matrix
         B = P.inverse().__mul__(A).__mul__(P)

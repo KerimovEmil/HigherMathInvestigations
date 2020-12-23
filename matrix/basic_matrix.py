@@ -1,4 +1,5 @@
 import unittest
+from itertools import chain
 
 
 # no importing numpy
@@ -200,6 +201,9 @@ class Matrix:
             result.append(self.ls_entries[i][i])
         return result
 
+    def is_zero_matrix(self):
+        return all(x == 0 for x in chain(*self.ls_entries))
+
     @staticmethod
     def reduced_row_echelon_form(A):
         """
@@ -220,6 +224,17 @@ class Matrix:
         return A
 
     @staticmethod
+    def is_ref(A):
+        # Check if non-zero matrix in row echelon form
+        while all(x == 0 for x in A[:, 0]):
+            A = Matrix(A[:, 1:])
+
+        for i in range(len(A.ls_entries[0])):
+            if A[i][i] != 1:
+                return False
+        return True
+
+    @staticmethod
     def row_echelon_form(A, iter=0, dim_limit=0):
         """
         Converts the input matrix into row echelon form.  Note, this function is recursive
@@ -230,6 +245,9 @@ class Matrix:
             <Matrix> row echelon form of Matrix A
         """
         len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
+        Matrix.is_ref(A)
+        if A.is_zero_matrix() or Matrix.is_ref(A):
+            return A
 
         if iter == 0:  # first iteration
             dim_limit = 1 if len_col == len_row else 2  # to maintain 2 dimensions for matrix operations
@@ -242,7 +260,7 @@ class Matrix:
         first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
         first_non_zero_elem_idx = next((i for i, x in enumerate(first_col_elems) if x != 0), False)
         if first_non_zero_elem_idx is False:  # there are no non-zero elements
-            B = Matrix.row_echelon_form(Matrix(A[:, 1:]))  # proceed to next column
+            B = Matrix.row_echelon_form(Matrix(A[:, 1:]), iter + 1, dim_limit)  # proceed to next column
 
         # pivot rows if the non-zero element is in another row
         if first_non_zero_elem_idx != 0:
@@ -256,8 +274,6 @@ class Matrix:
             A[1:] = Matrix(A[1:]).__add__(reduction_fact.__neg__())
 
         # Recursively reduce the next rows and columns
-        if len_col <= dim_limit:
-            print('test')
         B = Matrix.row_echelon_form(Matrix(A[1:, 1:]), iter + 1, dim_limit) if len_col > dim_limit else [[1.0]]
 
         # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
