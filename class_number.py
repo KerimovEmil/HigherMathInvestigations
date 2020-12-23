@@ -109,8 +109,23 @@ class QuadraticForm:
     def __str__(self):
         return f'a: {self.f.a}, b: {self.f.b}, c: {self.f.c}'
 
-    def multiply_T(self):
-        new_matrix = QuadraticForm.T.transpose() @ self.matrix_form() @ QuadraticForm.T
+    def multiply_by(self, by='T'):
+        """
+        Returns V'*A*V for V either T or S, as defined in this class
+        Args:
+            by: <str> 'T' or 'S'
+
+        Returns: an equivalent quadratic form
+
+        """
+        if by == 'T':
+            V = QuadraticForm.T
+        elif by == 'S':
+            V = QuadraticForm.S
+        else:
+            raise NotImplementedError(f'Multiply by {by} is not supported yet')
+
+        new_matrix = V.transpose() @ self.matrix_form() @ V
         assert new_matrix[0][1] == new_matrix[1][0]
         return QuadraticForm(a=int(new_matrix[0][0]), b=int(2*new_matrix[1][0]), c=int(new_matrix[1][1]))
 
@@ -171,12 +186,11 @@ def get_reduced_forms(D, debug=False):
 def get_class_number(D, debug=False):
     """Given an <int> D, computes the class number of discriminant = -D of the binary quadratic form"""
     ls_reduced = get_reduced_forms(D, debug=debug)
-    # todo filter some reduced forms, see example with D = 47
 
     # sample filtering, which needs to be more advanced
     ls_loop = ls_reduced.copy()
     for potential in ls_loop:
-        if potential.multiply_T() in ls_reduced:
+        if potential.multiply_by(by='T') in ls_reduced:
             ls_reduced.remove(potential)
     return len(ls_reduced)
 
@@ -200,7 +214,6 @@ if __name__ == '__main__':
     test_factors_n()
 
     print(get_negative_class_type(max_n=170, cn=1))
-    # todo figure out which one is more right
     assert get_negative_class_type(max_n=170, cn=1) == [3, 4, 7, 8, 11, 19, 43, 67, 163]
 
     print(get_negative_class_type(max_n=170, cn=2))
