@@ -2,6 +2,10 @@ from matrix.basic_matrix import Matrix, MatrixError
 import unittest
 import copy
 from numpy import roots as numpy_roots
+import itertools
+from collections import Counter
+
+TOL = 1E-10
 
 
 class SquareMatrix(Matrix):
@@ -144,8 +148,9 @@ class SquareMatrix(Matrix):
             # partition the n x n matrix accordingly
             row_vector = self.matrix_factory([A[0, 1:]])
             col_vector = self.matrix_factory([A[1:, 0]])
-            principal = self.matrix_factory([[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
-                                j != 0])
+            principal = self.matrix_factory(
+                [[A[j][x] for x in range(len(A[j])) if x != 0] for j in range(len(A.ls_entries)) if
+                 j != 0])
             a_elem = A[0][0]
             C = self.get_toeplitz_matrix_berkowitz(a_elem, row_vector, col_vector, principal, col_num=len(A.ls_entries))
             C_ls.append(C)
@@ -171,14 +176,115 @@ class SquareMatrix(Matrix):
         char_eqn = self.char_eqn_berkowitz()
         return list(numpy_roots(char_eqn.ls_entries[0]))  # this uses the numpy roots function
 
-    def eigenvectors(self):
-        raise NotImplementedError
+    def eigenvalues_eigenvectors(self):
+        """
+        Returns the eigenvalues and normalized eigenvectors
+
+        Returns:
+            eigenvalues: <list> of eigenvalues
+            eigenvectors: <Matrix> of the normalized eigenvectors where each vector is a column, in the same order as
+            its corresponding eigenvalue in the outputted eigenvalues list
+        """
+        eig_vals_ls = self.eigenvalues()
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        I = A.identity(size=A.size)
+        eigs_result = []
+
+        for eig_val in eig_vals_ls:
+
+            # solve (A-lambdaI)x = 0 where x is the eigenvector associated with eigenvalue lambda
+            B = A.__add__(eig_val * I.__neg__())
+            zero_vector = self.zero_matrix(self.size, 1)
+
+            # add zero vector as end column
+            B = self.matrix_factory(
+                [list(x) for x in [*map(lambda rows: itertools.chain(*rows), zip(*[B, zero_vector]))]])
+            ref = Matrix.row_echelon_form(B)
+
+            # reduce to second last col into reduced row echelon form
+            for i in reversed(range(1, A.size - 1)):
+                reduction_fact = Matrix([[x * z[0] for x in ref[i]] for z in zip(ref[:i, i])])
+                ref[:i] = Matrix(ref[:i]).__add__(reduction_fact.__neg__())
+
+            eig_vec = ref[:, -2]
+            eig_vec[-1] *= -1  # last element is opposite sign
+
+            # normalize the vector to be length 1
+            norm_fact = (sum([x ** 2 for x in eig_vec])) ** 0.5
+            eig_vec = [x / norm_fact for x in eig_vec]
+
+            # Append the eigenvector to the result list, such that it is a new row
+            eigs_result.append(eig_vec)
+
+        return eig_vals_ls, self.matrix_factory(ls_entries=eigs_result).transpose()
+
+    def is_diagonalizable(self):
+        """
+        Checks if matrix is diagonalizable by checking if the algebraic multiplicity of non-distinct eigenvalues is
+        equal to its geometric multiplicity
+
+        Returns:
+             <bool> True if diagonalizable, False otherwise
+        """
+        # first check whether eigenvalues are distinct
+        eigs_ls = self.eigenvalues()
+        if len(eigs_ls) == len(set(eigs_ls)):
+            return True  # if all eigenvalues are distinct
+
+        algebraic_multiplicities = dict(Counter(eigs_ls))
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        I = A.identity(size=A.size)
+        # check the geometric multiplicity of the non-distinct ones
+        for key, value in algebraic_multiplicities.items():
+            if value == 1:
+                continue
+            B = A.__add__(key * I.__neg__())
+            ref = Matrix.row_echelon_form(B)
+
+            # geometric multiplicity will be the rows without the leading 1
+            len_col = len(ref.ls_entries[0])
+            geo_mult = 0
+            for i in range(len_col):
+                while all(x == 0 for x in A[:, 0]):
+                    ref = Matrix(ref[:, 1:])
+                    if ref[i][i] != 1:
+                        geo_mult += 1
+            if geo_mult != value:
+                return False
+
+        return True
 
     def diagonalize(self):
-        raise NotImplementedError
+        """
+        Returns the diagonalized matrix B, which is defined as P^-1*A*P where P is the matrix of eigenvectors
+
+        Returns:
+            P: <Matrix> the matrix of eigenvectors
+            B: <Matrix> diagonalization of A
+        """
+        _, P = self.eigenvalues_eigenvectors()
+        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
+        A.is_diagonalizable()  # Check if diagonalizable
+
+        # diagonalized matrix
+        B = P.inverse().__mul__(A).__mul__(P)
+
+        # OK to put elements as 0 if below tolerance, tolerance constant here is 1E-10
+        for i in range(B.size):
+            B[i] = [0 if abs(elem) <= TOL else elem for elem in B[i]]
+        return P, B
 
     def square_root(self):
-        raise NotImplementedError
+        """
+        Returns the square root of the matrix
+
+        Returns:
+            <Matrix> square root of the original matrix i.e.: A^(1/2) = PB^(1/2)P^(-1) where B is the diagonalized
+            matrix and P is the matrix of eigenvectors
+        """
+        P, B = self.diagonalize()
+        B = B.elem_pow(0.5)
+        return P.__mul__(B).__mul__(P.inverse())
 
 
 class TestSquareMatrix(unittest.TestCase):
@@ -200,7 +306,7 @@ class TestSquareMatrix(unittest.TestCase):
         multiply = L.__mul__(U)
         self.assertEqual(set(map(tuple, A.ls_entries)), set(map(tuple, multiply)))
 
-    def test_eigenvalues(self):
+    def test_eigenvalues_eigenvectors(self):
         ls_entries = [[16, 14, 11, 18, 11],
                       [15, 14, 8, 15, 10],
                       [15, 10, 4, 7, 15],
@@ -208,12 +314,34 @@ class TestSquareMatrix(unittest.TestCase):
                       [12, 4, 19, 8, 9]]
 
         from numpy.linalg import eig as numpy_eig
-        from numpy import array as numpy_array
+        from numpy import array as numpy_array, allclose
 
         A = SquareMatrix(ls_entries)
         A_numpy = numpy_array(ls_entries)
 
-        eigs = A.eigenvalues()
+        eigs, eig_vects = A.eigenvalues_eigenvectors()
         np_eigs, np_eig_vects = numpy_eig(A_numpy)
 
-        self.assertTrue(all([abs(i - j) <= 1e-5 for i, j in zip(sorted(list(np_eigs)), sorted(eigs))]))
+        # compare the transposes so that can use numpy allclose method
+        eig_vects = sorted(eig_vects.transpose().ls_entries, key=lambda x: x[0])
+        np_eig_vects = sorted(np_eig_vects.T, key=lambda x: x[0])
+
+        # Just need to test for the eigenvectors, if those match then the eigenvalues would've also been the same
+        # Tests to the default tolerances of rtol=1e-05, atol=1e-08
+        self.assertTrue(allclose(eig_vects, np_eig_vects))
+
+    def test_square_root(self):
+        ls_entries = [[16, 14, 11, 18, 11],
+                      [15, 14, 8, 15, 10],
+                      [15, 10, 4, 7, 15],
+                      [7, 13, 9, 19, 9],
+                      [12, 4, 19, 8, 9]]
+
+        from scipy.linalg import sqrtm
+        from numpy import array, allclose
+        A = SquareMatrix(ls_entries=ls_entries)
+        A_np = array(A.ls_entries)
+
+        r_scipy = sqrtm(A_np)
+        r = A.square_root().ls_entries
+        self.assertTrue(allclose(r_scipy, r))

@@ -1,4 +1,6 @@
 import unittest
+from itertools import chain
+
 
 # no importing numpy
 
@@ -39,12 +41,11 @@ class Matrix:
             return self.ls_entries[key]
         if len(key) == 2:
             row, col = key
-            if all(isinstance(i, int) for i in key) or isinstance(col, slice):
-                return self.ls_entries[row][col]
-            elif isinstance(row, slice):
+            if isinstance(row, slice):  # for if either row only or row and col are slices
                 return [x[col] for x in self.ls_entries[row]]
-            elif all(isinstance(i, slice) for i in key):
-                raise NotImplemented  # TODO implement this case and test against np.array behaviour
+            elif all(isinstance(i, int) for i in key) or isinstance(col,
+                                                                    slice):  # for if only col is a slice or neither row and col are slices
+                return self.ls_entries[row][col]
             else:
                 raise NotImplemented
         else:
@@ -158,6 +159,17 @@ class Matrix:
         else:  # if even
             return half.__mul__(half).__mod__(mod)
 
+    def elem_pow(self, n):
+        """
+        Raise each element to the power of n
+
+        Args:
+            n: <int> to raise all elements to the power to
+        Returns:
+            <Matrix> raised to the power
+        """
+        return self.matrix_factory([list(map(lambda x: pow(x, n), row)) for row in self.ls_entries])
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -189,11 +201,108 @@ class Matrix:
             result.append(self.ls_entries[i][i])
         return result
 
+    def is_zero_matrix(self):
+        return all(x == 0 for x in chain(*self.ls_entries))
 
-# https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
+    @staticmethod
+    def reduced_row_echelon_form(A):
+        """
+        Given Matrix A, return the reduced row echelon form
+
+        Args:
+            A: <Matrix> to put into row echelon form
+        Returns:
+            <Matrix> in reduced row echelon form
+        """
+        A = Matrix.row_echelon_form(A)
+        len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
+        loop_from = len_col if len_col == len_row else len_col - 1
+
+        for i in reversed(range(1, loop_from)):
+            reduction_fact = Matrix([[x * z[0] for x in A[i]] for z in zip(A[:i, i])])
+            A[:i] = Matrix(A[:i]).__add__(reduction_fact.__neg__())
+        return A
+
+    @staticmethod
+    def is_ref(A):
+        # Check if non-zero matrix in row echelon form
+        while all(x == 0 for x in A[:, 0]):
+            A = Matrix(A[:, 1:])
+
+        for i in range(len(A.ls_entries[0])):
+            if A[i][i] != 1:
+                return False
+        return True
+
+    @staticmethod
+    def row_echelon_form(A, iter=0, dim_limit=0):
+        """
+        Converts the input matrix into row echelon form.  Note, this function is recursive
+
+        Args:
+            A: <Matrix> to put into row echelon form
+        Returns:
+            <Matrix> row echelon form of Matrix A
+        """
+        len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
+        Matrix.is_ref(A)
+        if A.is_zero_matrix() or Matrix.is_ref(A):
+            return A
+
+        if iter == 0:  # first iteration
+            dim_limit = 1 if len_col == len_row else 2  # to maintain 2 dimensions for matrix operations
+            if len_row > len_col:
+                # TODO implement this case --> right now hitting issues with Matrix dimension restrictions for how the reduction is done
+                # Right now, only if more cols than rows and for square matrix
+                raise NotImplemented
+
+        # extract index of first non-zero element in the first column
+        first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
+        first_non_zero_elem_idx = next((i for i, x in enumerate(first_col_elems) if x != 0), False)
+        if first_non_zero_elem_idx is False:  # there are no non-zero elements
+            B = Matrix.row_echelon_form(Matrix(A[:, 1:]), iter + 1, dim_limit)  # proceed to next column
+
+        # pivot rows if the non-zero element is in another row
+        if first_non_zero_elem_idx != 0:
+            pivot_row = A[first_non_zero_elem_idx].copy()
+            A[first_non_zero_elem_idx], A[0] = A[0], pivot_row
+
+        # Gaussion Elimination
+        A[0] = [x / A[0][0] for x in A[0]]
+        if len_col > dim_limit:
+            reduction_fact = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
+            A[1:] = Matrix(A[1:]).__add__(reduction_fact.__neg__())
+
+        # Recursively reduce the next rows and columns
+        B = Matrix.row_echelon_form(Matrix(A[1:, 1:]), iter + 1, dim_limit) if len_col > dim_limit else [[1.0]]
+
+        # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
+        # prior columns of zero to maintain the matrix shape (A[1:, :1]
+        return Matrix(A[:1] + [x + y for x, y in zip(A[1:, :1], B)])
+
+    # https://codereview.stackexchange.com/questions/233182/general-matrix-class?rq=1
 
 
 class TestMatrix(unittest.TestCase):
+    def test_reduced_row_echelon(self):
+        import numpy as np
+        from sympy import Matrix as sympy_matrix
+
+        ls_entries_col_g_row = [[14, 0, 11, 3],
+                                [22, 23, 4, 7],
+                                [-12, -34, -3, -4]]
+        ls_entries_square = [[16, 14, 11, 18, 11],
+                             [15, 14, 8, 15, 10],
+                             [15, 10, 4, 7, 15],
+                             [7, 13, 9, 19, 9],
+                             [12, 4, 19, 8, 9]]
+        for ls_entries in [ls_entries_col_g_row, ls_entries_square]:
+            sympy_rref, _ = sympy_matrix(ls_entries).rref()
+
+            A = Matrix(ls_entries)
+            rref = Matrix.reduced_row_echelon_form(A)
+
+            self.assertTrue(np.allclose(rref.ls_entries, np.array(sympy_rref).astype(np.float64)))
 
     def test_simple_multiplication(self):
         A = Matrix(ls_entries=[[1, 2], [1, 3]])
