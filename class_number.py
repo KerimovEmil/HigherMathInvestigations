@@ -201,11 +201,12 @@ def get_reduced_forms(D, debug=False):
     """Given an <int> D, computes all reduced forms of discriminant = -D of the binary quadratic form"""
     ls_potential_reduced_quad_forms = []
 
-    cond_1 = ((-D) % 4 == 1) and is_squarefree(D)
-    cond_2 = ((-D) % 4 == 0) and ((-D // 4) % 4 in [2, 3]) and is_squarefree(abs(-D // 4))
-
-    if not cond_1 and not cond_2:
-        return []
+    # this filtering was moved out of this function. Not sure which makes more sense. Need to read more theory.
+    # cond_1 = ((-D) % 4 == 1) and is_squarefree(D)
+    # cond_2 = ((-D) % 4 == 0) and ((-D // 4) % 4 in [2, 3]) and is_squarefree(abs(-D // 4))
+    #
+    # if not cond_1 and not cond_2:
+    #     return []
 
     abs_b_max = int((D / 3) ** 0.5)
     if debug:
@@ -268,7 +269,7 @@ def get_negative_class_type(max_n, cn, square_free=False):
         cn:
         square_free:
 
-    Returns:
+    Returns: sorted <list> of negative discriminants of class number cn up to -max_n
 
     References:
         https://en.wikipedia.org/wiki/Fundamental_discriminant
