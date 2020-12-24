@@ -69,16 +69,9 @@ class QuadraticForm:
         """
         Return boolean if quadratic form is in reduced state.
         Reduced is defined as:
-        D = discriminant
-        if D > 0:
-           0 < b < sqrt(D)
-           and
-           sqrt(D) - b < 2 |a| < sqrt(D) + b
-        if D < 0:
-           |b| <= a <= c
 
-        # todo see if these are equivalent to
         # -|a| < b <= |a| or 0 <= b <= |a| = |c|
+        # -a < b <= a or 0 <= b <= a = c
 
         another definition:
         if |b| ≤ a ≤ c, and b ≥ 0 if either a = c or |b| = a
@@ -88,27 +81,28 @@ class QuadraticForm:
         #     return False
 
         def third():
-            condition_1 = - abs(self.f.a) < self.f.b <= abs(self.f.a)
+            # condition_1 = - abs(self.f.a) < self.f.b <= abs(self.f.a)
+            condition_1 = - self.f.a < self.f.b <= self.f.a
             condition_2 = 0 <= self.f.b <= abs(self.f.a)
             condition_3 = abs(self.f.a) == abs(self.f.c)
 
             return condition_1 or (condition_2 and condition_3)
 
-        def first():
-            """
-            if D < 0 then |b| <= a <= c
-            if D > 0 then 0 < b < sqrt(D) and sqrt(D) - b < 2|a| < sqrt(D) + b
-            """
-            D = self.discriminant()
-            if D < 0:
-                return abs(self.f.b) <= self.f.a <= self.f.c
-            elif D > 0:
-                sr_D = D ** 0.5
-                cond_1 = 0 < self.f.b < sr_D
-                cond_2 = sr_D - self.f.b < 2 * abs(self.f.a) < sr_D + self.f.b
-                return cond_1 and cond_2
-            else:
-                raise NotImplementedError("D cannot be 0, yet.")
+        # def first():
+        #     """
+        #     if D < 0 then |b| <= a <= c
+        #     if D > 0 then 0 < b < sqrt(D) and sqrt(D) - b < 2|a| < sqrt(D) + b
+        #     """
+        #     D = self.discriminant()
+        #     if D < 0:
+        #         return abs(self.f.b) <= self.f.a <= self.f.c
+        #     elif D > 0:
+        #         sr_D = D ** 0.5
+        #         cond_1 = 0 < self.f.b < sr_D
+        #         cond_2 = sr_D - self.f.b < 2 * abs(self.f.a) < sr_D + self.f.b
+        #         return cond_1 and cond_2
+        #     else:
+        #         raise NotImplementedError("D cannot be 0, yet.")
 
         return third()
         # return first()  # this also works
@@ -228,6 +222,9 @@ def factors_of_n(n):
 def get_reduced_forms(D, debug=False):
     """Given an <int> D, computes all reduced forms of discriminant = -D of the binary quadratic form"""
     ls_potential_reduced_quad_forms = []
+
+    if debug:
+        print(f'---DEBUG {D}---')
 
     # this filtering was moved out of this function. Not sure which makes more sense. Need to read more theory.
     # cond_1 = ((-D) % 4 == 1) and is_squarefree(D)
@@ -377,7 +374,6 @@ if __name__ == '__main__':
     test_class_number()
     test_function_repr()
 
-    # print('---DEBUG 47---')
     # print(get_class_number(47, debug=True))
     # D = 47
     #  a   b   c   works
