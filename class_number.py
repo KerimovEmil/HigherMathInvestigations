@@ -174,9 +174,9 @@ class QuadraticForm:
                 return f'{prefix}{abs(c)}{term}'
 
         out_str = ''
-        out_str += _add_term(self.f.a, 'x^2', first=True)
+        out_str += _add_term(self.f.a, f'x\N{SUPERSCRIPT two}', first=True)
         out_str += _add_term(self.f.b, 'xy', first=self.f.a == 0)
-        out_str += _add_term(self.f.c, 'y^2', first=(self.f.a == 0) and (self.f.b == 0))
+        out_str += _add_term(self.f.c, f'y\N{SUPERSCRIPT two}', first=(self.f.a == 0) and (self.f.b == 0))
 
         return out_str
 
@@ -335,10 +335,10 @@ def test_factors_n():
 
 def test_function_repr():
     assert QuadraticForm(a=0, b=-2, c=0).function_repr() == '2xy'
-    assert QuadraticForm(a=1, b=1, c=1).function_repr() == 'x^2 + xy + y^2'
-    assert QuadraticForm(a=-1, b=-1, c=-1).function_repr() == 'x^2 - xy - y^2'
-    assert QuadraticForm(a=-1, b=-1, c=0).function_repr() == 'x^2 - xy'
-    assert QuadraticForm(a=4, b=-2, c=5).function_repr() == '4x^2 - 2xy + 5y^2'
+    assert QuadraticForm(a=1, b=1, c=1).function_repr() == 'x² + xy + y²'
+    assert QuadraticForm(a=-1, b=-1, c=-1).function_repr() == 'x² - xy - y²'
+    assert QuadraticForm(a=-1, b=-1, c=0).function_repr() == 'x² - xy'
+    assert QuadraticForm(a=4, b=-2, c=5).function_repr() == '4x² - 2xy + 5y²'
 
 
 def test_class_number():
@@ -378,7 +378,7 @@ if __name__ == '__main__':
     # D = 47
     #  a   b   c   works
     #  1   1   12    Y
-    #  1  -1   12    X
+    #  1  -1   12    X  # since not in reduced form
     #  2   1    6    Y
     #  2  -1    6    Y
     #  3   1    4    Y
