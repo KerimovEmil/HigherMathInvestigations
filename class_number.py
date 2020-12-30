@@ -248,13 +248,22 @@ def get_reduced_forms(D, debug=False):
             # ac >= b^2
             ls_fac = factors_of_n(temp)
             for fac_tup in ls_fac:
-                quad_form = QuadraticForm(a=fac_tup[0], b=b, c=fac_tup[1])
+                a, c = fac_tup[0], fac_tup[1]
+
+                quad_form = QuadraticForm(a=a, b=b, c=c)
                 if quad_form.is_reduced():
                     ls_potential_reduced_quad_forms.append(quad_form)
                     if debug:
                         print(quad_form)
                 if b != 0:
-                    quad_form = QuadraticForm(a=fac_tup[0], b=-b, c=fac_tup[1])
+                    # For a negative class number, all of the reduced forms, have possible duplicates of these two types
+                    #     1)  (a,b,a) ~ (a,-b,a)
+                    #     2)  (a,a,c) ~ (a,-a,c)
+                    if -b == a:
+                        continue
+                    if a == c:
+                        continue
+                    quad_form = QuadraticForm(a=a, b=-b, c=c)
                     if quad_form.is_reduced():
                         ls_potential_reduced_quad_forms.append(quad_form)
                         if debug:
@@ -263,7 +272,7 @@ def get_reduced_forms(D, debug=False):
     return ls_potential_reduced_quad_forms
 
 
-def remove_duplicate_negative_reduced_forms(iter_reduced):
+def remove_duplicate_negative_reduced_forms(iter_reduced):  # not used, but keeping in case required later
     """
     For a negative class number, all of the reduced forms, have possible duplicates of these two types.
     1)  (a,b,a) ~ (a,-b,a)
@@ -291,9 +300,9 @@ def get_class_number(D, debug=False):
     ls_reduced = get_reduced_forms(D, debug=debug)
 
     # filter for the forms (a,-b,a) and (a,-a,c)
-    ls_fully_reduced = remove_duplicate_negative_reduced_forms(ls_reduced)
+    # ls_reduced = remove_duplicate_negative_reduced_forms(ls_reduced)
 
-    return len(ls_fully_reduced)
+    return len(ls_reduced)
 
 
 def get_negative_class_type(max_n, cn, square_free=False):
