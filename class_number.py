@@ -263,23 +263,37 @@ def get_reduced_forms(D, debug=False):
     return ls_potential_reduced_quad_forms
 
 
+def remove_duplicate_negative_reduced_forms(iter_reduced):
+    """
+    For a negative class number, all of the reduced forms, have possible duplicates of these two types.
+    1)  (a,b,a) ~ (a,-b,a)
+    2)  (a,a,c) ~ (a,-a,c)
+
+    This function removes the types (a,-b,a) and (a,-a,c)
+    Args:
+        iter_reduced: list/set of quadratic forms to check
+
+    Returns: list/set of reduced quadratic forms without the (a,-b,a) and (a,-a,c) forms.
+
+    """
+
+    ls_loop = iter_reduced.copy()
+    for potential in ls_loop:
+        if (potential.f.a == potential.f.c) and potential.f.b < 0:
+            iter_reduced.remove(potential)
+        if potential.f.a == -potential.f.b:
+            iter_reduced.remove(potential)
+    return iter_reduced
+
+
 def get_class_number(D, debug=False):
     """Given an <int> D, computes the class number of discriminant = -D of the binary quadratic form"""
     ls_reduced = get_reduced_forms(D, debug=debug)
 
-    # sample filtering, which needs to be more advanced
-    ls_loop = ls_reduced.copy()
-    for potential in ls_loop:
-        mult_t = potential.multiply_by(by='T')
-        if mult_t in ls_reduced:
-            if mult_t != potential:
-                ls_reduced.remove(potential)
-        mult_s = potential.multiply_by(by='S')
-        if mult_s in ls_reduced:
-            if mult_s != potential:
-                ls_reduced.remove(potential)
+    # filter for the forms (a,-b,a) and (a,-a,c)
+    ls_fully_reduced = remove_duplicate_negative_reduced_forms(ls_reduced)
 
-    return len(ls_reduced)
+    return len(ls_fully_reduced)
 
 
 def get_negative_class_type(max_n, cn, square_free=False):
