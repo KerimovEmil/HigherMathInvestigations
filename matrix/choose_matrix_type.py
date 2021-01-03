@@ -1,5 +1,6 @@
 from matrix.square_matrix import SquareMatrix
 from matrix.symmetric_matrix import SymmetricMatrix
+from matrix.hankel_matrix import HankelMatrix
 from matrix.basic_matrix import Matrix, MatrixError
 
 
@@ -15,4 +16,6 @@ class MatrixFactory:  # todo consider making this a function instead of a class
             m_obj = SquareMatrix(ls_entries)
             if m_obj.is_symmetric():
                 m_obj = SymmetricMatrix(ls_entries)
+                if m_obj.is_hankel():
+                    m_obj = HankelMatrix(ls_entries)
         return m_obj
