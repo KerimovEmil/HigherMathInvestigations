@@ -143,19 +143,20 @@ class Matrix:
         return self == self.transpose()
 
     def is_hankel(self):
+        """ Checks whether matrix is hankel.  Returns True if hankel matrix, False otherwise """
         if not self.is_symmetric():
             return False
 
-        # create the hankel matrix for the given size
         size = self.len_col  # since will be square matrix
-        A = self.zero_matrix(size, size)
 
-        for i in range(size):
-            for j in range(size):
-                if i + j + 1 <= size:
-                    A[i][j] = i + j + 1
+        # check if the skew-diagonals are constant
+        for skew_diag_idx in range(size * 2 - 1):
+            skew_diag = [row[skew_diag_idx - i] for i, row in enumerate(self) if size > skew_diag_idx - i >= 0]
+            first_elem = skew_diag[0]
+            if not all(first_elem == elem for elem in skew_diag):
+                return False
 
-        return self.__eq__(A)
+        return True
 
     def __mod__(self, mod):
         if mod:
@@ -414,5 +415,14 @@ class TestMatrix(unittest.TestCase):
             [2, 3, 4, 0],
             [3, 4, 0, 0],
             [4, 0, 0, 0]])
+
+        self.assertTrue(B.is_hankel())
+
+        # Hilbert matrix
+        B = Matrix(ls_entries=[
+            [1, 1 / 2, 1 / 3, 1 / 4],
+            [1 / 2, 1 / 3, 1 / 4, 1 / 5],
+            [1 / 3, 1 / 4, 1 / 5, 1 / 6],
+            [1 / 4, 1 / 5, 1 / 6, 1 / 7]])
 
         self.assertTrue(B.is_hankel())
