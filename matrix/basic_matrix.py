@@ -142,6 +142,21 @@ class Matrix:
     def is_symmetric(self):
         return self == self.transpose()
 
+    def is_hankel(self):
+        if not self.is_symmetric():
+            return False
+
+        # create the hankel matrix for the given size
+        size = self.len_col  # since will be square matrix
+        A = self.zero_matrix(size, size)
+
+        for i in range(size):
+            for j in range(size):
+                if i + j + 1 <= size:
+                    A[i][j] = i + j + 1
+
+        return self.__eq__(A)
+
     def __mod__(self, mod):
         if mod:
             for i in range(len(self.ls_entries)):
@@ -385,3 +400,19 @@ class TestMatrix(unittest.TestCase):
             [4, 5, 7]])
 
         self.assertTrue(B.is_symmetric())
+
+    def test_hankel(self):
+        B = Matrix(ls_entries=[
+            [5, 8, 1],
+            [6, 7, 3],
+            [4, 5, 9]])
+
+        self.assertFalse(B.is_hankel())
+
+        B = Matrix(ls_entries=[
+            [1, 2, 3, 4],
+            [2, 3, 4, 0],
+            [3, 4, 0, 0],
+            [4, 0, 0, 0]])
+
+        self.assertTrue(B.is_hankel())
