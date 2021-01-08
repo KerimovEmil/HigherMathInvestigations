@@ -208,7 +208,7 @@ class Matrix:
     def minor_matrix(self, remove_row, remove_col):
         new_matrix_array = [row[:remove_col] + row[remove_col + 1:] for row in
                             (self[:remove_row] + self[remove_row + 1:])]
-        return self.__class__(ls_entries=new_matrix_array)
+        return self.matrix_factory(ls_entries=new_matrix_array)
 
     def diagonal(self):
         min_dim = min(self.len_row, self.len_col)
