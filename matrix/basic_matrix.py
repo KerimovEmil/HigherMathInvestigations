@@ -184,8 +184,16 @@ class Matrix:
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
+        # Allow for left-to-right or right-to-left order
+        if self[:, -1] == [1] * self.len_row:
+            # swap column order
+            ordered = list(reversed(list(zip(*self.ls_entries))))
+            self.ls_entries = list([list(x) for x in zip(*ordered)])
 
-        pass
+        # Create the comparable vandermonde matrix
+        vander_mat = self.vander(input_arr=self[:, 1], num_cols=self.len_col)
+
+        return self.__eq__(vander_mat)
 
     def vander(self, input_arr, num_cols=False):
         """
@@ -201,7 +209,7 @@ class Matrix:
             <Matrix> output vandermonde matrix
         """
 
-        # create a matrix of size (len(input_arr), num_cols)
+        # create a matrix of size (num_cols, len(input_arr))
         # first column is ones
         num_cols = len(input_arr) if not num_cols else num_cols
         A = self.ones_matrix(num_cols, len(input_arr))
