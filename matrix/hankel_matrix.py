@@ -23,7 +23,7 @@ class HankelMatrix(SymmetricMatrix):
         return hankel_transform_res
 
 
-class TestSquareMatrix(unittest.TestCase):
+class TestHankelMatrix(unittest.TestCase):
     def test_hankel_transform(self):
         ls_entries = [[1, 1, 2, 5],
                       [1, 2, 5, 14],

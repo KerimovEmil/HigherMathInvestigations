@@ -185,7 +185,7 @@ class Matrix:
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
-        if self.len_col == 1 or self.len_row == 1:  # uncommon use case
+        if self.len_col == 1 or self.len_row == 1:  # uncommon use case should at least be 2x2
             return False
 
         ls_entries = copy.deepcopy(self.ls_entries)
