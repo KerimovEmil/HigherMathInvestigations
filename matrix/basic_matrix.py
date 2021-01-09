@@ -1,5 +1,6 @@
 import unittest
 from itertools import chain
+import copy
 
 
 # no importing numpy
@@ -184,21 +185,25 @@ class Matrix:
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
+        if self.len_col == 1 or self.len_row == 1:  # uncommon use case
+            return False
+
+        ls_entries = copy.deepcopy(self.ls_entries)
         # Allow for left-to-right or right-to-left order
         if self[:, -1] == [1] * self.len_row:
             # swap column order
-            ordered = list(reversed(list(zip(*self.ls_entries))))
-            self.ls_entries = list([list(x) for x in zip(*ordered)])
+            ordered = list(reversed(list(zip(*ls_entries))))
+            ls_entries = list([list(x) for x in zip(*ordered)])
 
         # Create the comparable vandermonde matrix
-        vander_mat = self.vander(input_arr=self[:, 1], num_cols=self.len_col)
+        vander_mat = self.vander_ls_entries(input_arr=Matrix(ls_entries)[:, 1], num_cols=self.len_col)
 
-        return self.__eq__(vander_mat)
+        return ls_entries == vander_mat
 
-    def vander(self, input_arr, num_cols=False):
+    def vander_ls_entries(self, input_arr, num_cols=False):
         """
-        Returns a vandermonde matrix
-        Functions like np.vander - columns of the output matrix are powers of the input array
+        Returns the ls_entries for a vandermonde matrix
+        Simular functionality to np.vander - columns of the output matrix are powers of the input array
 
         Args:
             input_arr: <list> input array to create vandermonde matrix
@@ -206,18 +211,19 @@ class Matrix:
             (i.e. num_cols = len(input_arr)
 
         Returns:
-            <Matrix> output vandermonde matrix
+            <list> ls_entries output for vandermonde matrix
         """
 
         # create a matrix of size (num_cols, len(input_arr))
-        # first column is ones
         num_cols = len(input_arr) if not num_cols else num_cols
-        A = self.ones_matrix(num_cols, len(input_arr))
+
+        # first column is ones
+        A = Matrix([[1] * len(input_arr) for _ in range(num_cols)])
         A[1] = input_arr
         for i in range(2, num_cols):
             A[i] = [x ** i for x in input_arr]
 
-        return self.matrix_factory(A.ls_entries).transpose()
+        return Matrix(A.ls_entries).transpose().ls_entries
 
     def __mod__(self, mod):
         if mod:

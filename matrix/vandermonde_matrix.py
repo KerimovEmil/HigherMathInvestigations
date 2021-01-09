@@ -1,5 +1,5 @@
 from matrix.basic_matrix import MatrixError, Matrix
-
+from matrix.square_matrix import SquareMatrix
 
 class VandermondeMatrix(Matrix):
     def __init__(self, ls_entries=None, matrix=None):
@@ -10,5 +10,9 @@ class VandermondeMatrix(Matrix):
         else:
             raise MatrixError('Vandermonde matrix not instantiated correctly.')
 
-        if not self.is_hankel():
+        if not self.is_vandermonde():
             raise MatrixError('Not a vandermonde matrix.')
+
+class SquareVandermondeMatrix(SquareMatrix, VandermondeMatrix):
+    def __init__(self, ls_entries=None, matrix=None):
+        super().__init__(ls_entries, matrix)
