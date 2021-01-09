@@ -1,0 +1,14 @@
+from matrix.basic_matrix import MatrixError, Matrix
+
+
+class VandermondeMatrix(Matrix):
+    def __init__(self, ls_entries=None, matrix=None):
+        if ls_entries is not None and isinstance(ls_entries, list):
+            super().__init__(ls_entries)
+        elif matrix is not None and isinstance(matrix, Matrix):
+            super().__init__(ls_entries=matrix.ls_entries)
+        else:
+            raise MatrixError('Vandermonde matrix not instantiated correctly.')
+
+        if not self.is_hankel():
+            raise MatrixError('Not a vandermonde matrix.')

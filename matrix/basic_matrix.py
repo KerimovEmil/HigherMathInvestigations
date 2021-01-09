@@ -78,6 +78,30 @@ class Matrix:
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         return [[0] * col_dim for _ in range(row_dim)]
 
+    def ones_matrix(self, row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <Matrix> of ones
+        """
+        return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
+
+    @staticmethod
+    def ones_ls_entries(row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <list> of ones
+        """
+        assert isinstance(row_dim, int) and isinstance(col_dim, int)
+        return [[1] * col_dim for _ in range(row_dim)]
+
     def identity(self, size):  # todo see if this should be a new child class
         """
         Return an identity matrix of size n
@@ -157,6 +181,35 @@ class Matrix:
                 return False
 
         return True
+
+    def is_vandermonde(self):
+        """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
+
+        pass
+
+    def vander(self, input_arr, num_cols=False):
+        """
+        Returns a vandermonde matrix
+        Functions like np.vander - columns of the output matrix are powers of the input array
+
+        Args:
+            input_arr: <list> input array to create vandermonde matrix
+            num_cols: <int> number of output columns.  Defaults to False.  If False, return square matrix
+            (i.e. num_cols = len(input_arr)
+
+        Returns:
+            <Matrix> output vandermonde matrix
+        """
+
+        # create a matrix of size (len(input_arr), num_cols)
+        # first column is ones
+        num_cols = len(input_arr) if not num_cols else num_cols
+        A = self.ones_matrix(num_cols, len(input_arr))
+        A[1] = input_arr
+        for i in range(2, num_cols):
+            A[i] = [x ** i for x in input_arr]
+
+        return self.matrix_factory(A.ls_entries).transpose()
 
     def __mod__(self, mod):
         if mod:
