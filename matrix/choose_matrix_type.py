@@ -1,7 +1,8 @@
 from matrix.square_matrix import SquareMatrix
 from matrix.symmetric_matrix import SymmetricMatrix
 from matrix.hankel_matrix import HankelMatrix
-from matrix.basic_matrix import Matrix, MatrixError
+from matrix.basic_matrix import Matrix
+from matrix.vandermonde_matrix import VandermondeMatrix, SquareVandermondeMatrix
 
 
 # main link: https://www.mins.ee.ethz.ch/teaching/ha/handouts/linalg3p.pdf
@@ -14,8 +15,17 @@ class MatrixFactory:  # todo consider making this a function instead of a class
 
         if m_obj.is_square():
             m_obj = SquareMatrix(ls_entries)
+
             if m_obj.is_symmetric():
                 m_obj = SymmetricMatrix(ls_entries)
                 if m_obj.is_hankel():
                     m_obj = HankelMatrix(ls_entries)
+
+            if m_obj.is_vandermonde():
+                m_obj = SquareVandermondeMatrix(ls_entries)
+
+        else:
+            if m_obj.is_vandermonde():
+                m_obj = VandermondeMatrix(ls_entries)
+
         return m_obj

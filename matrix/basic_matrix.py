@@ -1,5 +1,6 @@
 import unittest
 from itertools import chain
+import copy
 
 
 # no importing numpy
@@ -77,6 +78,30 @@ class Matrix:
         """
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         return [[0] * col_dim for _ in range(row_dim)]
+
+    def ones_matrix(self, row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <Matrix> of ones
+        """
+        return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
+
+    @staticmethod
+    def ones_ls_entries(row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <list> of ones
+        """
+        assert isinstance(row_dim, int) and isinstance(col_dim, int)
+        return [[1] * col_dim for _ in range(row_dim)]
 
     def identity(self, size):  # todo see if this should be a new child class
         """
@@ -158,6 +183,48 @@ class Matrix:
 
         return True
 
+    def is_vandermonde(self):
+        """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
+        if self.len_col == 1 or self.len_row == 1:  # uncommon use case should at least be 2x2
+            return False
+
+        ls_entries = copy.deepcopy(self.ls_entries)
+        # Allow for left-to-right or right-to-left order
+        if self[:, -1] == [1] * self.len_row:
+            # swap column order
+            ordered = list(reversed(list(zip(*ls_entries))))
+            ls_entries = list([list(x) for x in zip(*ordered)])
+
+        # Create the comparable vandermonde matrix
+        vander_mat = self.vander_ls_entries(input_arr=Matrix(ls_entries)[:, 1], num_cols=self.len_col)
+
+        return ls_entries == vander_mat
+
+    def vander_ls_entries(self, input_arr, num_cols=False):
+        """
+        Returns the ls_entries for a vandermonde matrix
+        Simular functionality to np.vander - columns of the output matrix are powers of the input array
+
+        Args:
+            input_arr: <list> input array to create vandermonde matrix
+            num_cols: <int> number of output columns.  Defaults to False.  If False, return square matrix
+            (i.e. num_cols = len(input_arr)
+
+        Returns:
+            <list> ls_entries output for vandermonde matrix
+        """
+
+        # create a matrix of size (num_cols, len(input_arr))
+        num_cols = len(input_arr) if not num_cols else num_cols
+
+        # first column is ones
+        A = Matrix([[1] * len(input_arr) for _ in range(num_cols)])
+        A[1] = input_arr
+        for i in range(2, num_cols):
+            A[i] = [x ** i for x in input_arr]
+
+        return Matrix(A.ls_entries).transpose().ls_entries
+
     def __mod__(self, mod):
         if mod:
             for i in range(len(self.ls_entries)):
@@ -208,7 +275,7 @@ class Matrix:
     def minor_matrix(self, remove_row, remove_col):
         new_matrix_array = [row[:remove_col] + row[remove_col + 1:] for row in
                             (self[:remove_row] + self[remove_row + 1:])]
-        return self.__class__(ls_entries=new_matrix_array)
+        return self.matrix_factory(ls_entries=new_matrix_array)
 
     def diagonal(self):
         min_dim = min(self.len_row, self.len_col)
@@ -426,3 +493,25 @@ class TestMatrix(unittest.TestCase):
             [1 / 4, 1 / 5, 1 / 6, 1 / 7]])
 
         self.assertTrue(B.is_hankel())
+
+    def test_vandermonde(self):
+        B = Matrix(ls_entries=[[1, 1, 1],
+                               [4, 2, 1],
+                               [9, 3, 1],
+                               [25, 5, 1]])
+
+        self.assertTrue(B.is_vandermonde())
+
+        B = Matrix(ls_entries=[[1, 1, 1, 1],
+                               [8, 4, 2, 1],
+                               [27, 9, 3, 1],
+                               [125, 25, 5, 1]])
+
+        self.assertTrue(B.is_vandermonde())
+
+        B = Matrix(ls_entries=[[5, 1, 1, 1],
+                               [5, 4, 2, 1],
+                               [5, 9, 3, 1],
+                               [5, 25, 5, 1]])
+
+        self.assertFalse(B.is_vandermonde())
