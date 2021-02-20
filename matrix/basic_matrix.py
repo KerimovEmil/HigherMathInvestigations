@@ -196,11 +196,12 @@ class Matrix:
             ls_entries = list([list(x) for x in zip(*ordered)])
 
         # Create the comparable vandermonde matrix
-        vander_mat = self.vander_ls_entries(input_arr=Matrix(ls_entries)[:, 1], num_cols=self.len_col)
+        vander_mat = Matrix.vander_ls_entries(input_arr=Matrix(ls_entries)[:, 1], num_cols=self.len_col)
 
         return ls_entries == vander_mat
 
-    def vander_ls_entries(self, input_arr, num_cols=False):
+    @staticmethod
+    def vander_ls_entries(input_arr, num_cols=False):
         """
         Returns the ls_entries for a vandermonde matrix
         Simular functionality to np.vander - columns of the output matrix are powers of the input array
