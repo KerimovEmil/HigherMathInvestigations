@@ -3,6 +3,7 @@ from matrix.square_matrix import SquareMatrix
 import copy
 import itertools
 import unittest
+from sympy import Symbol, latex, Add
 
 
 class VandermondeMatrix(Matrix):
@@ -17,16 +18,6 @@ class VandermondeMatrix(Matrix):
         if not self.is_vandermonde():
             raise MatrixError('Not a vandermonde matrix.')
 
-    def polynomial_fitting(self):
-        # TODO
-        pass
-
-    def lagrange_interpolation(self):
-        # TODO
-        # add plotting to show the differences between vandermonde fitting and lagrange
-        # https://mathrule.wordpress.com/2010/06/05/polynomial-interpolationvandermonde-matrix-lagrange-polynomial/
-        pass
-
 
 class SquareVandermondeMatrix(SquareMatrix, VandermondeMatrix):
     def __init__(self, ls_entries=None, matrix=None):
@@ -35,7 +26,9 @@ class SquareVandermondeMatrix(SquareMatrix, VandermondeMatrix):
     def determinant(self):
         """
         Calculates the determinant of a Square Vandermonde matrix
+
         Returns:
+            mult_res: <float> the determinant
 
         """
         A = copy.deepcopy(self)
@@ -53,6 +46,39 @@ class SquareVandermondeMatrix(SquareMatrix, VandermondeMatrix):
 
         return mult_res
 
+    @staticmethod
+    def polynomial_fitting(pts_ls):
+        """
+        Create the interpolating polynomial passing through the input points using the vandermonde matrix
+
+        Args:
+            pts_ls: <list> of tuples of (x,y) points to be interpolated
+
+        Returns:
+            res: <list> of coefficients for the interpolating polynomial of degree n -1, where n is the number of input
+            points, in descending order
+            expr: <str> latex representation of the polynomial
+
+        """
+        # Create the vandermonde matrix from the x-coordinates of the points
+        x_coords = [x[0] for x in pts_ls]
+        y_coords_vector = Matrix([[x[1] for x in pts_ls]]).transpose()
+
+        A = SquareVandermondeMatrix(Matrix.vander_ls_entries(input_arr=x_coords))
+        B = A.matrix_factory([list(x) for x in [*map(lambda rows: itertools.chain(*rows), zip(*[A, y_coords_vector]))]])
+
+        # solve the linear system now, Ax = b
+        res = Matrix.reduced_row_echelon_form(B)[:, -1]
+        res.reverse()
+
+        poly_exp_ls = list(reversed(range(len(x_coords))))
+        x = Symbol("x")
+
+        # create expression
+        expr = Add(*[a * x ** b for a, b in zip(res, poly_exp_ls)])
+
+        return res, latex(expr)
+
 
 class TestSquareVandermondeMatrix(unittest.TestCase):
     def test_det(self):
@@ -68,3 +94,12 @@ class TestSquareVandermondeMatrix(unittest.TestCase):
 
         self.assertEqual(A_test1.determinant(), np.linalg.det(A_np1))
         self.assertEqual(A_test2.determinant(), np.linalg.det(A_np2))
+
+    def test_interpolating_poly(self):
+        input_ls = [(1, -6), (2, 2), (4, 12)]
+        res_test, expr_test = SquareVandermondeMatrix.polynomial_fitting(input_ls)
+
+        res_expected = [-1.0, 11.0, -16.0]
+        expr_expected = '- 1.0 x^{2} + 11.0 x - 16.0'
+        self.assertEqual(res_test, res_expected)
+        self.assertEqual(expr_test, expr_expected)
