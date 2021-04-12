@@ -29,6 +29,10 @@ class SquareMatrix(Matrix):
 
     def determinant(self):
         """Computes the determinate of the square matrix"""
+        # if one element only
+        if self.size == 1:
+            return self[0][0]
+
         # base case for 2x2 matrix
         if self.size == 2:
             # a*d - b*c

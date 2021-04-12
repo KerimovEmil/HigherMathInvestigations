@@ -1,5 +1,6 @@
 import unittest
 from itertools import chain
+import copy
 
 
 # no importing numpy
@@ -78,6 +79,30 @@ class Matrix:
         assert isinstance(row_dim, int) and isinstance(col_dim, int)
         return [[0] * col_dim for _ in range(row_dim)]
 
+    def ones_matrix(self, row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <Matrix> of ones
+        """
+        return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
+
+    @staticmethod
+    def ones_ls_entries(row_dim, col_dim):
+        """
+        Returns a matrix of ones with row and columns
+        Args:
+            row_dim: <int> a positive integer representing the number of rows
+            col_dim: <int> a positive integer representing the number of rows
+
+        Returns: <list> of ones
+        """
+        assert isinstance(row_dim, int) and isinstance(col_dim, int)
+        return [[1] * col_dim for _ in range(row_dim)]
+
     def identity(self, size):  # todo see if this should be a new child class
         """
         Return an identity matrix of size n
@@ -142,6 +167,65 @@ class Matrix:
     def is_symmetric(self):
         return self == self.transpose()
 
+    def is_hankel(self):
+        """ Checks whether matrix is hankel.  Returns True if hankel matrix, False otherwise """
+        if not self.is_symmetric():
+            return False
+
+        size = self.len_col  # since will be square matrix
+
+        # check if the skew-diagonals are constant
+        for skew_diag_idx in range(size * 2 - 1):
+            skew_diag = [row[skew_diag_idx - i] for i, row in enumerate(self) if size > skew_diag_idx - i >= 0]
+            first_elem = skew_diag[0]
+            if not all(first_elem == elem for elem in skew_diag):
+                return False
+
+        return True
+
+    def is_vandermonde(self):
+        """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
+        if self.len_col == 1 or self.len_row == 1:  # uncommon use case should at least be 2x2
+            return False
+
+        ls_entries = copy.deepcopy(self.ls_entries)
+        # Allow for left-to-right or right-to-left order
+        if self[:, -1] == [1] * self.len_row:
+            # swap column order
+            ordered = list(reversed(list(zip(*ls_entries))))
+            ls_entries = list([list(x) for x in zip(*ordered)])
+
+        # Create the comparable vandermonde matrix
+        vander_mat = Matrix.vander_ls_entries(input_arr=Matrix(ls_entries)[:, 1], num_cols=self.len_col)
+
+        return ls_entries == vander_mat
+
+    @staticmethod
+    def vander_ls_entries(input_arr, num_cols=False):
+        """
+        Returns the ls_entries for a vandermonde matrix
+        Simular functionality to np.vander - columns of the output matrix are powers of the input array
+
+        Args:
+            input_arr: <list> input array to create vandermonde matrix
+            num_cols: <int> number of output columns.  Defaults to False.  If False, return square matrix
+            (i.e. num_cols = len(input_arr)
+
+        Returns:
+            <list> ls_entries output for vandermonde matrix
+        """
+
+        # create a matrix of size (num_cols, len(input_arr))
+        num_cols = len(input_arr) if not num_cols else num_cols
+
+        # first column is ones
+        A = Matrix([[1] * len(input_arr) for _ in range(num_cols)])
+        A[1] = input_arr
+        for i in range(2, num_cols):
+            A[i] = [x ** i for x in input_arr]
+
+        return Matrix(A.ls_entries).transpose().ls_entries
+
     def __mod__(self, mod):
         if mod:
             for i in range(len(self.ls_entries)):
@@ -192,7 +276,7 @@ class Matrix:
     def minor_matrix(self, remove_row, remove_col):
         new_matrix_array = [row[:remove_col] + row[remove_col + 1:] for row in
                             (self[:remove_row] + self[remove_row + 1:])]
-        return self.__class__(ls_entries=new_matrix_array)
+        return self.matrix_factory(ls_entries=new_matrix_array)
 
     def diagonal(self):
         min_dim = min(self.len_row, self.len_col)
@@ -216,7 +300,7 @@ class Matrix:
         """
         A = Matrix.row_echelon_form(A)
         len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
-        loop_from = len_col if len_col == len_row else len_col - 1
+        loop_from = len_col if len_row >= len_col else len_col - 1
 
         for i in reversed(range(1, loop_from)):
             reduction_fact = Matrix([[x * z[0] for x in A[i]] for z in zip(A[:i, i])])
@@ -235,7 +319,7 @@ class Matrix:
         return True
 
     @staticmethod
-    def row_echelon_form(A, iter=0, dim_limit=0):
+    def row_echelon_form(A):
         """
         Converts the input matrix into row echelon form.  Note, this function is recursive
 
@@ -244,23 +328,14 @@ class Matrix:
         Returns:
             <Matrix> row echelon form of Matrix A
         """
-        len_col, len_row = len(A.ls_entries[0]), len(A.ls_entries)
-        Matrix.is_ref(A)
         if A.is_zero_matrix() or Matrix.is_ref(A):
             return A
-
-        if iter == 0:  # first iteration
-            dim_limit = 1 if len_col == len_row else 2  # to maintain 2 dimensions for matrix operations
-            if len_row > len_col:
-                # TODO implement this case --> right now hitting issues with Matrix dimension restrictions for how the reduction is done
-                # Right now, only if more cols than rows and for square matrix
-                raise NotImplemented
 
         # extract index of first non-zero element in the first column
         first_col_elems = [A[i, 0] for i in range(len(A.ls_entries))]
         first_non_zero_elem_idx = next((i for i, x in enumerate(first_col_elems) if x != 0), False)
         if first_non_zero_elem_idx is False:  # there are no non-zero elements
-            B = Matrix.row_echelon_form(Matrix(A[:, 1:]), iter + 1, dim_limit)  # proceed to next column
+            B = Matrix.row_echelon_form(Matrix(A[:, 1:]))  # proceed to next column
 
         # pivot rows if the non-zero element is in another row
         if first_non_zero_elem_idx != 0:
@@ -269,12 +344,15 @@ class Matrix:
 
         # Gaussion Elimination
         A[0] = [x / A[0][0] for x in A[0]]
-        if len_col > dim_limit:
-            reduction_fact = Matrix([[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])])
-            A[1:] = Matrix(A[1:]).__add__(reduction_fact.__neg__())
+        reduction_fact = [[x * z[0][0] for x in A[0]] for z in zip(A[1:, 0:1])]
+        A[1:] = [list(map(lambda x, y: x - y, row_mat_1, row_mat_2)) for row_mat_1, row_mat_2 in
+                 zip(A[1:], reduction_fact)]
 
         # Recursively reduce the next rows and columns
-        B = Matrix.row_echelon_form(Matrix(A[1:, 1:]), iter + 1, dim_limit) if len_col > dim_limit else [[1.0]]
+        if list(chain(*A[1:, 1:])):
+            B = Matrix.row_echelon_form(Matrix(A[1:, 1:]))
+        else:
+            return A
 
         # return the prior evaluated rows of A (A[:1]) appended to the result of the next set of reductions (B) plus the
         # prior columns of zero to maintain the matrix shape (A[1:, :1]
@@ -296,7 +374,13 @@ class TestMatrix(unittest.TestCase):
                              [15, 10, 4, 7, 15],
                              [7, 13, 9, 19, 9],
                              [12, 4, 19, 8, 9]]
-        for ls_entries in [ls_entries_col_g_row, ls_entries_square]:
+
+        ls_entries_row_g_col = [[14, 0, 11],
+                                [22, 23, 4],
+                                [-12, -34, -3],
+                                [4, 5, 6]]
+
+        for ls_entries in [ls_entries_col_g_row, ls_entries_square, ls_entries_row_g_col]:
             sympy_rref, _ = sympy_matrix(ls_entries).rref()
 
             A = Matrix(ls_entries)
@@ -385,3 +469,50 @@ class TestMatrix(unittest.TestCase):
             [4, 5, 7]])
 
         self.assertTrue(B.is_symmetric())
+
+    def test_hankel(self):
+        B = Matrix(ls_entries=[
+            [5, 8, 1],
+            [6, 7, 3],
+            [4, 5, 9]])
+
+        self.assertFalse(B.is_hankel())
+
+        B = Matrix(ls_entries=[
+            [1, 2, 3, 4],
+            [2, 3, 4, 0],
+            [3, 4, 0, 0],
+            [4, 0, 0, 0]])
+
+        self.assertTrue(B.is_hankel())
+
+        # Hilbert matrix
+        B = Matrix(ls_entries=[
+            [1, 1 / 2, 1 / 3, 1 / 4],
+            [1 / 2, 1 / 3, 1 / 4, 1 / 5],
+            [1 / 3, 1 / 4, 1 / 5, 1 / 6],
+            [1 / 4, 1 / 5, 1 / 6, 1 / 7]])
+
+        self.assertTrue(B.is_hankel())
+
+    def test_vandermonde(self):
+        B = Matrix(ls_entries=[[1, 1, 1],
+                               [4, 2, 1],
+                               [9, 3, 1],
+                               [25, 5, 1]])
+
+        self.assertTrue(B.is_vandermonde())
+
+        B = Matrix(ls_entries=[[1, 1, 1, 1],
+                               [8, 4, 2, 1],
+                               [27, 9, 3, 1],
+                               [125, 25, 5, 1]])
+
+        self.assertTrue(B.is_vandermonde())
+
+        B = Matrix(ls_entries=[[5, 1, 1, 1],
+                               [5, 4, 2, 1],
+                               [5, 9, 3, 1],
+                               [5, 25, 5, 1]])
+
+        self.assertFalse(B.is_vandermonde())
