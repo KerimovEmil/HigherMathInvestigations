@@ -165,7 +165,10 @@ class Matrix:
         return self.len_row == self.len_col
 
     def is_symmetric(self):
-        return self == self.transpose()
+
+        # cannot use self == self.transpose in current Matrix Factory set up or else symmetric .transpose() will overwrite
+        # and all square matrices will be marked as symmetric
+        return self == Matrix.transpose(Matrix(self.ls_entries))
 
     def is_hankel(self):
         """ Checks whether matrix is hankel.  Returns True if hankel matrix, False otherwise """
