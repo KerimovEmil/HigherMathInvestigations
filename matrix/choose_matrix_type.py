@@ -1,8 +1,4 @@
-from matrix.square_matrix import SquareMatrix
-from matrix.symmetric_matrix import SymmetricMatrix
-from matrix.hankel_matrix import HankelMatrix
 from matrix.basic_matrix import Matrix, MatrixError
-from matrix.vandermonde_matrix import VandermondeMatrix, SquareVandermondeMatrix
 
 
 # main link: https://www.mins.ee.ethz.ch/teaching/ha/handouts/linalg3p.pdf
