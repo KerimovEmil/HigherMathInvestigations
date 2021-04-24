@@ -290,6 +290,12 @@ class SquareMatrix(Matrix):
         B = B.elem_pow(0.5)
         return P.__mul__(B).__mul__(P.inverse())
 
+    def trace(self):
+        """
+        Returns: <float> trace of the matrix
+        """
+        # TODO 
+
 
 class TestSquareMatrix(unittest.TestCase):
     def test_det(self):

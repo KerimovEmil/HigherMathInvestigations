@@ -186,6 +186,10 @@ class Matrix:
 
         return True
 
+    def is_orthogonal(self):
+        I = self.identity(self.len_col)
+        return self.__mul__(self.transpose()) == I
+
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
         if self.len_col == 1 or self.len_row == 1:  # uncommon use case should at least be 2x2
@@ -497,6 +501,18 @@ class TestMatrix(unittest.TestCase):
             [1 / 4, 1 / 5, 1 / 6, 1 / 7]])
 
         self.assertTrue(B.is_hankel())
+
+    def test_orthogonal(self):
+        B = Matrix([[0, 0, 0, 1],
+                    [0, 0, 1, 0],
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0]])
+
+        self.assertTrue(B.is_orthogonal())
+
+        B = Matrix([[1, 0], [0, -1]])
+
+        self.assertTrue(B.is_orthogonal())
 
     def test_vandermonde(self):
         B = Matrix(ls_entries=[[1, 1, 1],
