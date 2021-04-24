@@ -289,10 +289,10 @@ class SquareMatrix(Matrix):
         P, B = self.diagonalize()
         B = B.elem_pow(0.5)
         return P.__mul__(B).__mul__(P.inverse())
-
+    
     def trace(self):
         """
-        Returns: <float> trace of the matrix
+        Returns: <float> trace of the matrix 
         """
         # TODO 
 

@@ -3,9 +3,6 @@ from itertools import chain
 import copy
 
 
-# no importing numpy
-
-
 class MatrixError(Exception):
     """An exception class for Matrix"""
     pass
@@ -187,8 +184,31 @@ class Matrix:
         return True
 
     def is_orthogonal(self):
-        I = self.identity(self.len_col)
-        return self.__mul__(self.transpose()) == I
+        """
+        Test whether column is orthogonal
+        """
+
+        # Duplicates code for the identity matrix and then to multiply to avoid max recursion issues in matrix factory
+        # due to the identity matrix being orthogonal
+
+        # Get identity matrix
+        ls_zero = self.zero_ls_entries(row_dim=self.len_col, col_dim=self.len_col)
+        for i in range(self.len_col):
+            ls_zero[i][i] = 1
+        I = Matrix(ls_zero)
+
+        transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
+
+        # Multiply transpose with self and check whether it is equal to the identity matrix
+        result = self.zero_ls_entries(row_dim=self.len_row, col_dim=transpose.len_col)
+        for i in range(self.len_row):
+            # iterate through columns of Y
+            for j in range(transpose.len_col):
+                # iterate through rows of Y
+                for k in range(transpose.len_row):
+                    result[i][j] += self[i][k] * transpose[k][j]
+
+        return Matrix(result) == I
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
