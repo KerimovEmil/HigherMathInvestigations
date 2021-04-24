@@ -167,6 +167,12 @@ class Matrix:
         # and all square matrices will be marked as symmetric
         return self == Matrix.transpose(Matrix(self.ls_entries))
 
+    def is_skew_symmetric(self):
+
+        # cannot use self == self.transpose in current Matrix Factory set up or else skew_symmetric .transpose() will overwrite
+        # and all square matrices will be marked as skew symmetric
+        return -self == Matrix.transpose(Matrix(self.ls_entries))
+
     def is_hankel(self):
         """ Checks whether matrix is hankel.  Returns True if hankel matrix, False otherwise """
         if not self.is_symmetric():
@@ -533,6 +539,13 @@ class TestMatrix(unittest.TestCase):
         B = Matrix([[1, 0], [0, -1]])
 
         self.assertTrue(B.is_orthogonal())
+
+    def test_skew_symmetric(self):
+        B = Matrix([[0, 2, -45],
+                    [-2, 0, -4],
+                    [45, 4, 0]])
+
+        self.assertTrue(B.is_skew_symmetric())
 
     def test_vandermonde(self):
         B = Matrix(ls_entries=[[1, 1, 1],
