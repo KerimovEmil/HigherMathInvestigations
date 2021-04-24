@@ -20,10 +20,10 @@ class OrthogonalMatrix(SquareMatrix):
     def solve_linear_system(self, b):
         """
         Args:
-            b: constant matrix
+            b: <matrix.basic_matrix.Matrix> constant matrix
 
         Returns:
-            x: vector solution of linear system
+            x: <matrix.basic_matrix.Matrix> vector solution of linear system
         """
         return self.transpose().__mul__(b)
 
