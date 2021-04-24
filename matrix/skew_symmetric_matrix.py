@@ -12,3 +12,5 @@ class SkewSymmetric(SquareMatrix):
     def transpose(self):
         return -self
 
+    def trace(self):
+        return 0
