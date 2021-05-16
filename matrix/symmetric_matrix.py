@@ -15,16 +15,25 @@ class SymmetricMatrix(SquareMatrix):
     def transpose(self):
         return self
 
-    def get_definiteness(self):
+    def get_definiteness(self, use_cholesky=True):
         """
         Returns: <str> the definiteness type, i.e. positive_definite, positive_semi_definite, negative_definite,
-        negative_semi_definite, or indefinite
+        negative_semi_definite, or indefinite, positive_definite_or_semi_definite if using the cholesky shortcut
         """
-        eigenvalues = self.eigenvalues()
-        definiteness_dict = {'positive_definite': all(i > 0 for i in eigenvalues),
-                             'positive_semi_definite': all(i >= 0 for i in eigenvalues),
-                             'negative_definite': all(i < 0 for i in eigenvalues),
-                             'negative_semi_definite': all(i <= 0 for i in eigenvalues)}
+        if use_cholesky:
+            try:
+                self.cholesky_decomp()  # cholesky is more efficient then finding the eigenvalues
+                return 'positive_definite_or_semi_definite'
+            except:
+                eigenvalues = self.eigenvalues()
+                definiteness_dict = {'negative_definite': all(i < 0 for i in eigenvalues),
+                                     'negative_semi_definite': all(i <= 0 for i in eigenvalues)}
+        else:
+            eigenvalues = self.eigenvalues()
+            definiteness_dict = {'positive_definite': all(i > 0 for i in eigenvalues),
+                                 'positive_semi_definite': all(i >= 0 for i in eigenvalues),
+                                 'negative_definite': all(i < 0 for i in eigenvalues),
+                                 'negative_semi_definite': all(i <= 0 for i in eigenvalues)}
 
         # get the true conditions
         df = pd.DataFrame(
@@ -72,8 +81,15 @@ class TestSymmetricMatrix(unittest.TestCase):
         neg_def = SymmetricMatrix([[-3, 0, 0], [0, -2, 0], [0, 0, -1]])
         neg_semi_def = SymmetricMatrix([[0, 0], [0, -1]])
 
-        self.assertEqual(pos_def.get_definiteness(), 'positive_definite')
-        self.assertEqual(pos_semi_def.get_definiteness(), 'positive_semi_definite')
+        self.assertEqual(pos_def.get_definiteness(use_cholesky=False), 'positive_definite')
+        self.assertEqual(pos_semi_def.get_definiteness(use_cholesky=False), 'positive_semi_definite')
+        self.assertEqual(in_def.get_definiteness(use_cholesky=False), 'indefinite')
+        self.assertEqual(neg_def.get_definiteness(use_cholesky=False), 'negative_definite')
+        self.assertEqual(neg_semi_def.get_definiteness(use_cholesky=False), 'negative_semi_definite')
+
+        # for the cholesky factorization
+        self.assertEqual(pos_def.get_definiteness(), 'positive_definite_or_semi_definite')
+        self.assertEqual(pos_semi_def.get_definiteness(), 'positive_definite_or_semi_definite')
         self.assertEqual(in_def.get_definiteness(), 'indefinite')
         self.assertEqual(neg_def.get_definiteness(), 'negative_definite')
         self.assertEqual(neg_semi_def.get_definiteness(), 'negative_semi_definite')
