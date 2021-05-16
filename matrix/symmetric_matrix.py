@@ -17,6 +17,10 @@ class SymmetricMatrix(SquareMatrix):
 
     def get_definiteness(self, use_cholesky=True):
         """
+        use_cholesky: <bool> whether to use the Cholesky factorization method to determine whether it is positive
+        definite or positive semi-definite.  This is more efficient than having to find the eigenvalues for the pos
+        cases.
+
         Returns: <str> the definiteness type, i.e. positive_definite, positive_semi_definite, negative_definite,
         negative_semi_definite, or indefinite, positive_definite_or_semi_definite if using the cholesky shortcut
         """
@@ -93,3 +97,14 @@ class TestSymmetricMatrix(unittest.TestCase):
         self.assertEqual(in_def.get_definiteness(), 'indefinite')
         self.assertEqual(neg_def.get_definiteness(), 'negative_definite')
         self.assertEqual(neg_semi_def.get_definiteness(), 'negative_semi_definite')
+
+    def test_cholesky(self):
+        ls_entries = [[4, 12, -16], [12, 37, -43], [-16, -43, 98]]
+
+        A = SymmetricMatrix(ls_entries=ls_entries)
+        D = A.cholesky_decomp()
+
+        import numpy as np
+        
+        self.assertTrue(np.allclose(D[0].ls_entries, [[2, 0, 0], [6, 1, 0], [-8, 5, 3]]))
+        self.assertTrue(np.allclose(D[1].ls_entries, [[2, 6, -8], [0, 1, 5], [0, 0, 3]]))
