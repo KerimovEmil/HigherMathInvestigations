@@ -2,6 +2,8 @@ from matrix.square_matrix import SquareMatrix
 from matrix.basic_matrix import MatrixError
 import pandas as pd
 import unittest
+import copy
+import math
 
 
 class SymmetricMatrix(SquareMatrix):
@@ -38,6 +40,28 @@ class SymmetricMatrix(SquareMatrix):
             return possible_types[0]
 
         return 'indefinite'
+
+    def cholesky_decomp(self):
+        """
+        Decompose the matrix into the form A = [L][L]^T, the lower triangular matrix and its conjugate transpose
+        https://en.wikipedia.org/wiki/Cholesky_decomposition
+
+        Returns: L, L.transpose()
+        """
+        A = copy.deepcopy(self)
+        L = self.zero_matrix(self.size, self.size)
+
+        # solve for L
+        for i in range(self.size):
+            for j in range(0, self.size):
+                if i == j:
+                    L[i][j] = math.sqrt(A[i][j] - sum([L[j][k] ** 2 for k in range(j)]))
+                elif i > j:
+                    L[i][j] = (1 / L[j][j]) * (A[i][j] - sum([L[i][k] * L[j][k] for k in range(j)]))
+
+        L = self.matrix_factory(L.ls_entries)
+
+        return L, L.transpose()
 
 
 class TestSymmetricMatrix(unittest.TestCase):
