@@ -94,6 +94,11 @@ class Matrix:
     @staticmethod
     def create_block_ls_entries(top_left, top_right, bottom_left, bottom_right):
         # Check for valid dimensions
+        # left and right need to have the same number of rows
+        # top and bottom need to have the same number of columns
+        if (top_left.len_row != top_right.len_row) or (top_left.len_col != bottom_left.len_col) or (
+                bottom_left.len_row != bottom_right.len_row) or (top_right.len_col != bottom_right.len_col):
+            raise MatrixError('Input dimensions do not align')
 
         # concatenate left matrices and right matrices i.e. left and right half
         # stack vertically
@@ -597,3 +602,24 @@ class TestMatrix(unittest.TestCase):
                                [5, 25, 5, 1]])
 
         self.assertFalse(B.is_vandermonde())
+
+    def test_block_creation(self):
+        """ Test that expected block matrix is created """
+        top_left = Matrix([[2, 0], [0, 2]])
+        top_right = Matrix([[0, 0, 0], [0, 0, 0]])
+        bottom_left = Matrix([[1, 1], [1, 1], [1, 1]])
+        bottom_right = Matrix([[3, 0, 0], [0, 3, 0], [0, 0, 3]])
+
+        block = Matrix.create_block_ls_entries(top_left, top_right, bottom_left, bottom_right)
+
+        expected = [[2., 0., 0., 0., 0.],
+                    [0., 2., 0., 0., 0.],
+                    [1., 1., 3., 0., 0.],
+                    [1., 1., 0., 3., 0.],
+                    [1., 1., 0., 0., 3.]]
+
+        import numpy as np # just for unittest
+        self.assertTrue(np.allclose(block, expected))
+
+
+
