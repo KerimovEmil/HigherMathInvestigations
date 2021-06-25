@@ -3,6 +3,7 @@ from itertools import chain
 import copy
 import functools
 
+
 class MatrixError(Exception):
     """An exception class for Matrix"""
     pass
@@ -234,12 +235,16 @@ class Matrix:
 
     @use_default_matrix_type_decorator
     def _mul(self, other):
+        """
+        Return __mul__ function result using the default Matrix type i.e. Matrix(result)
+        """
         return self.__mul__.__wrapped__(self, other)
 
     def __eq__(self, other):
         return self.ls_entries == other.ls_entries
 
-    def __str__(self):
+    def __repr__(self):
+        # By default __str__ will also use __repr__
         s = "\n".join([str(i) for i in [rows for rows in self.ls_entries]])
         return s
 
@@ -295,7 +300,6 @@ class Matrix:
                                                            bottom_right=Matrix(ls_zeros)))
 
         transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
-        # _mul = self.use_default_matrix_type_decorator(self.__mul__.__wrapped__)
 
         if transpose._mul(block_matrix)._mul(self) == block_matrix:
             return True
@@ -314,15 +318,7 @@ class Matrix:
         transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
         # Multiply transpose with self and check whether it is equal to the identity matrix
-        result = self.zero_ls_entries(row_dim=self.len_row, col_dim=transpose.len_col)
-        for i in range(self.len_row):
-            # iterate through columns of Y
-            for j in range(transpose.len_col):
-                # iterate through rows of Y
-                for k in range(transpose.len_row):
-                    result[i][j] += self[i][k] * transpose[k][j]
-
-        return Matrix(result) == I
+        return transpose._mul(self) == I
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
