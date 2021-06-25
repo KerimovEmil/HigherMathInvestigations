@@ -240,13 +240,18 @@ class Matrix:
         return True
 
     def is_symplectic(self):
+        """ Checks whether matrix is symplectic.  Returns True if symplectic matrix, False otherwise """
+
         if not self.is_square():
             return False
 
-        # block matrix must be nonsingular, skew-symmetric
-        # n = self.
-        # block_matrix =
-        pass
+        # block matrix must be non-singular, skew-symmetric
+        n = self.len_col // 2
+        block_matrix = self.block_matrix(top_left=self.zero_matrix(n, n), top_right=self.identity(n),
+                                         bottom_left=-self.identity(n), bottom_right=self.zero_matrix(n, n))
+        if self.transpose().__mul__(block_matrix).__mul__(self) == block_matrix:
+            return True
+        return False
 
     def is_orthogonal(self):
         """
@@ -645,3 +650,18 @@ class TestMatrix(unittest.TestCase):
 
         import numpy as np  # just for unittest
         self.assertTrue(np.allclose(block, expected))
+
+    def test_symplectic(self):
+        """ Tests that is_symplectic() evaluates to True for two known symplectic matrices """
+        A = Matrix(ls_entries=[[1, 0, 0, 1],
+                               [0, 1, 1, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1]])
+
+        B = Matrix(ls_entries=[[0, 1, 0, 1],
+                               [1, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               [0, 0, 1, 0]])
+
+        self.assertTrue(A.is_symplectic())
+        self.assertTrue(B.is_symplectic())
