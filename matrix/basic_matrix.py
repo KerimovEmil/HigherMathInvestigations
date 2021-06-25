@@ -1,7 +1,7 @@
 import unittest
 from itertools import chain
 import copy
-
+import functools
 
 class MatrixError(Exception):
     """An exception class for Matrix"""
@@ -33,6 +33,23 @@ class Matrix:
         if not hasattr(self, 'matrix_factory'):
             from matrix.choose_matrix_type import MatrixFactory
             return MatrixFactory()
+
+    def use_matrix_factory_decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            result = self.matrix_factory(func(self, *args, **kwargs))
+            result._original = func
+            return result
+
+        return wrapper
+
+    def use_default_matrix_type_decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            result = func(self, *args, **kwargs)
+            return Matrix(result)
+
+        return wrapper
 
     def __getitem__(self, key):
         if isinstance(key, (int, slice)):
@@ -163,6 +180,14 @@ class Matrix:
 
     @staticmethod
     def identity_ls_entries(size):
+        """
+        Return the ls_entries for an identity matrix of size n
+        Args:
+            size: <int> a positive integer representing the size of the identity matrix
+
+        Returns: <list> ls_entries for identity matrix
+        """
+
         assert isinstance(size, int)
         ls_zero = Matrix.zero_ls_entries(row_dim=size, col_dim=size)
         for i in range(size):
@@ -180,6 +205,7 @@ class Matrix:
             # A * B = (B^T * A^T)^T
             return (self.transpose() * other.transpose()).transpose()
 
+    @use_matrix_factory_decorator
     def __mul__(self, other):
         # self * other
 
@@ -204,7 +230,11 @@ class Matrix:
         else:
             raise MatrixError(f'type: {type(other)} multiplication not supported.')
 
-        return self.matrix_factory(result)
+        return result
+
+    @use_default_matrix_type_decorator
+    def _mul(self, other):
+        return self.__mul__.__wrapped__(self, other)
 
     def __eq__(self, other):
         return self.ls_entries == other.ls_entries
@@ -250,12 +280,26 @@ class Matrix:
         if not self.is_square():
             return False
 
-        # block matrix must be non-singular, skew-symmetric
         n = self.len_col // 2
-        block_matrix = self.block_matrix(top_left=self.zero_matrix(n, n), top_right=self.identity(n),
-                                         bottom_left=-self.identity(n), bottom_right=self.zero_matrix(n, n))
-        if self.transpose().__mul__(block_matrix).__mul__(self) == block_matrix:
+
+        ls_identity = self.identity_ls_entries(n)
+        ls_identity_neg = [[-1 * i for i in inner] for inner in ls_identity]
+        ls_zeros = self.zero_ls_entries(n, n)
+
+        # block matrix must be non-singular, skew-symmetric
+        # Use the typical choice:
+        # [[0  I_n],
+        # [-I_n 0]]
+        block_matrix = Matrix(self.create_block_ls_entries(top_left=Matrix(ls_zeros), top_right=Matrix(ls_identity),
+                                                           bottom_left=Matrix(ls_identity_neg),
+                                                           bottom_right=Matrix(ls_zeros)))
+
+        transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
+        # _mul = self.use_default_matrix_type_decorator(self.__mul__.__wrapped__)
+
+        if transpose._mul(block_matrix)._mul(self) == block_matrix:
             return True
+
         return False
 
     def is_orthogonal(self):
