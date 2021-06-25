@@ -158,11 +158,17 @@ class Matrix:
 
         Returns: Identity <Matrix>
         """
+        ls_entries = self.identity_ls_entries(size)
+        return self.matrix_factory(ls_entries=ls_entries)
+
+    @staticmethod
+    def identity_ls_entries(size):
         assert isinstance(size, int)
-        ls_zero = self.zero_ls_entries(row_dim=size, col_dim=size)
+        ls_zero = Matrix.zero_ls_entries(row_dim=size, col_dim=size)
         for i in range(size):
             ls_zero[i][i] = 1
-        return self.matrix_factory(ls_entries=ls_zero)
+        return ls_zero
+
 
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
