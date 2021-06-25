@@ -88,11 +88,35 @@ class Matrix:
         return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
 
     def block_matrix(self, top_left, top_right, bottom_left, bottom_right):
+        """
+        Forms and returns a block matrix
+
+        Args:
+            top_left: <Matrix> to go on the top left corner
+            top_right: <Matrix> to go on the top right corner
+            bottom_left: <Matrix> to go on the bottom left corner
+            bottom_right: <Matrix> to go on the bottom right corner
+
+        Returns:
+            <Matrix> block matrix
+        """
         return self.matrix_factory(
             ls_entries=self.create_block_ls_entries(top_left, top_right, bottom_left, bottom_right))
 
     @staticmethod
     def create_block_ls_entries(top_left, top_right, bottom_left, bottom_right):
+        """
+        Forms the ls_entries for the block matrix
+
+        Args:
+            top_left: <Matrix> to go on the top left corner
+            top_right: <Matrix> to go on the top right corner
+            bottom_left: <Matrix> to go on the bottom left corner
+            bottom_right: <Matrix> to go on the bottom right corner
+
+        Returns:
+            <list> to be the block matrix's ls_entries
+        """
         # Check for valid dimensions
         # left and right need to have the same number of rows
         # top and bottom need to have the same number of columns
