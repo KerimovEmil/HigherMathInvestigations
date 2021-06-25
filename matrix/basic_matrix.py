@@ -87,6 +87,26 @@ class Matrix:
         """
         return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
 
+    def block_matrix(self, top_left, top_right, bottom_left, bottom_right):
+        return self.matrix_factory(
+            ls_entries=self.create_block_ls_entries(top_left, top_right, bottom_left, bottom_right))
+
+    @staticmethod
+    def create_block_ls_entries(top_left, top_right, bottom_left, bottom_right):
+        # Check for valid dimensions
+
+        # concatenate left matrices and right matrices i.e. left and right half
+        # stack vertically
+        concat_order = [[top_left.ls_entries, bottom_left.ls_entries], [top_right.ls_entries, bottom_right.ls_entries]]
+        col_halves = []
+        for i in range(len(concat_order)):
+            col_halves.append(list(chain(*concat_order[i])))
+
+        # stack the left and right halves horizontally
+        block_mat_ls_entries = list(map(lambda cols: list(chain(*cols)), zip(*col_halves)))
+
+        return block_mat_ls_entries
+
     @staticmethod
     def ones_ls_entries(row_dim, col_dim):
         """
@@ -188,6 +208,15 @@ class Matrix:
                 return False
 
         return True
+
+    def is_symplectic(self):
+        if not self.is_square():
+            return False
+
+        # block matrix must be nonsingular, skew-symmetric
+        # n = self.
+        # block_matrix =
+        pass
 
     def is_orthogonal(self):
         """
