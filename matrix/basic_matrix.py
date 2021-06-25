@@ -243,10 +243,12 @@ class Matrix:
     def __eq__(self, other):
         return self.ls_entries == other.ls_entries
 
-    def __repr__(self):
-        # By default __str__ will also use __repr__
+    def __str__(self):
         s = "\n".join([str(i) for i in [rows for rows in self.ls_entries]])
         return s
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}\n{self!s}'
 
     def is_square(self):
         return self.len_row == self.len_col
