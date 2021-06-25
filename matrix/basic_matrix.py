@@ -169,7 +169,6 @@ class Matrix:
             ls_zero[i][i] = 1
         return ls_zero
 
-
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
@@ -264,14 +263,9 @@ class Matrix:
         Test whether column is orthogonal
         """
 
-        # Duplicates code for the identity matrix and then to multiply to avoid max recursion issues in matrix factory
-        # due to the identity matrix being orthogonal
-
         # Get identity matrix
-        ls_zero = self.zero_ls_entries(row_dim=self.len_col, col_dim=self.len_col)
-        for i in range(self.len_col):
-            ls_zero[i][i] = 1
-        I = Matrix(ls_zero)
+        ls_identity = self.identity_ls_entries(self.len_col)
+        I = Matrix(ls_identity)
 
         transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
