@@ -35,18 +35,27 @@ class Matrix:
             from matrix.choose_matrix_type import MatrixFactory
             return MatrixFactory()
 
+    # use_matrix_factory_decorator and use_default_matrix_type_decorator were introduced to address max recursion
+    # issues when using Matrix class methods that used other class methods calling self.matrix_factory
+    # for example, when attempting to use __mul__ in a is_something_matrix() method
+
     def use_matrix_factory_decorator(func):
-        @functools.wraps(func)
+        """ Decorator to return the result using the matrix factory to get the most relevant matrix """
+
+        @functools.wraps(func)  # preserve original function metadata
         def wrapper(self, *args, **kwargs):
+            # func should return ls_entries to be the self.matrix_factory argument
             result = self.matrix_factory(func(self, *args, **kwargs))
-            result._original = func
             return result
 
         return wrapper
 
     def use_default_matrix_type_decorator(func):
+        """ Decorator to return the result using the default Matrix class """
+
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
+            # func should return ls_entries to be the Matrix argument
             result = func(self, *args, **kwargs)
             return Matrix(result)
 
