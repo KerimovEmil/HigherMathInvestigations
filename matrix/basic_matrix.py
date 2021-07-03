@@ -9,32 +9,7 @@ class MatrixError(Exception):
     pass
 
 
-class Matrix:
-
-    def __init__(self, ls_entries=None):
-
-        # check that input is 2D
-        if ls_entries and ls_entries[0]:
-            if any(isinstance(x, list) for x in ls_entries[0]):  # more than 2D
-                raise MatrixError('Input is not 2 dimensional')
-        else:  # 1D
-            raise MatrixError('Input is not 2 dimensional')
-
-        self.ls_entries = ls_entries
-
-        self.len_row = len(self.ls_entries)
-        self.len_col = len(self.ls_entries[0])
-
-        if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
-            raise MatrixError("Uneven columns")
-
-        self.matrix_factory = self.get_matrix_factory()
-
-    def get_matrix_factory(self):
-        if not hasattr(self, 'matrix_factory'):
-            from matrix.choose_matrix_type import MatrixFactory
-            return MatrixFactory()
-
+class MatrixDecorator:
     # use_matrix_factory_decorator and use_default_matrix_type_decorator were introduced to address max recursion
     # issues when using Matrix class methods that used other class methods calling self.matrix_factory
     # for example, when attempting to use __mul__ in a is_something_matrix() method
@@ -60,6 +35,33 @@ class Matrix:
             return Matrix(result)
 
         return wrapper
+
+
+class Matrix:
+
+    def __init__(self, ls_entries=None):
+
+        # check that input is 2D
+        if ls_entries and ls_entries[0]:
+            if any(isinstance(x, list) for x in ls_entries[0]):  # more than 2D
+                raise MatrixError('Input is not 2 dimensional')
+        else:  # 1D
+            raise MatrixError('Input is not 2 dimensional')
+
+        self.ls_entries = ls_entries
+
+        self.len_row = len(self.ls_entries)
+        self.len_col = len(self.ls_entries[0])
+
+        if not all(map(lambda x: len(x) == self.len_col, self.ls_entries)):
+            raise MatrixError("Uneven columns")
+
+        self.matrix_factory = self.get_matrix_factory()
+
+    def get_matrix_factory(self):
+        if not hasattr(self, 'matrix_factory'):
+            from matrix.choose_matrix_type import MatrixFactory
+            return MatrixFactory()
 
     def __getitem__(self, key):
         if isinstance(key, (int, slice)):
@@ -215,7 +217,7 @@ class Matrix:
             # A * B = (B^T * A^T)^T
             return (self.transpose() * other.transpose()).transpose()
 
-    @use_matrix_factory_decorator
+    @MatrixDecorator.use_matrix_factory_decorator
     def __mul__(self, other):
         # self * other
 
@@ -242,7 +244,7 @@ class Matrix:
 
         return result
 
-    @use_default_matrix_type_decorator
+    @MatrixDecorator.use_default_matrix_type_decorator
     def _mul(self, other):
         """
         Return __mul__ function result using the default Matrix type i.e. Matrix(result)
