@@ -1,11 +1,40 @@
 import unittest
 from itertools import chain
 import copy
+import functools
 
 
 class MatrixError(Exception):
     """An exception class for Matrix"""
     pass
+
+
+class MatrixDecorator:
+    # use_matrix_factory_decorator and use_default_matrix_type_decorator were introduced to address max recursion
+    # issues when using Matrix class methods that used other class methods calling self.matrix_factory
+    # for example, when attempting to use __mul__ in a is_something_matrix() method
+
+    def use_matrix_factory_decorator(func):
+        """ Decorator to return the result using the matrix factory to get the most relevant matrix """
+
+        @functools.wraps(func)  # preserve original function metadata
+        def wrapper(self, *args, **kwargs):
+            # func should return ls_entries to be the self.matrix_factory argument
+            result = self.matrix_factory(func(self, *args, **kwargs))
+            return result
+
+        return wrapper
+
+    def use_default_matrix_type_decorator(func):
+        """ Decorator to return the result using the default Matrix class """
+
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            # func should return ls_entries to be the Matrix argument
+            result = func(self, *args, **kwargs)
+            return Matrix(result)
+
+        return wrapper
 
 
 class Matrix:
@@ -87,6 +116,56 @@ class Matrix:
         """
         return self.matrix_factory(ls_entries=self.ones_ls_entries(row_dim, col_dim))
 
+    def block_matrix(self, top_left, top_right, bottom_left, bottom_right):
+        """
+        Forms and returns a block matrix
+
+        Args:
+            top_left: <Matrix> to go on the top left corner
+            top_right: <Matrix> to go on the top right corner
+            bottom_left: <Matrix> to go on the bottom left corner
+            bottom_right: <Matrix> to go on the bottom right corner
+
+        Returns:
+            <Matrix> block matrix
+        """
+        return self.matrix_factory(
+            ls_entries=self.create_block_ls_entries(top_left, top_right, bottom_left, bottom_right))
+
+    @staticmethod
+    def create_block_ls_entries(top_left, top_right, bottom_left, bottom_right):
+        """
+        Forms the ls_entries for the block matrix
+
+        Args:
+            top_left: <Matrix> to go on the top left corner
+            top_right: <Matrix> to go on the top right corner
+            bottom_left: <Matrix> to go on the bottom left corner
+            bottom_right: <Matrix> to go on the bottom right corner
+
+        Returns:
+            <list> to be the block matrix's ls_entries
+        """
+        # Check for valid dimensions
+        # left and right need to have the same number of rows
+        # top and bottom need to have the same number of columns
+        if (top_left.len_row != top_right.len_row) or (top_left.len_col != bottom_left.len_col) or (
+                bottom_left.len_row != bottom_right.len_row) or (top_right.len_col != bottom_right.len_col):
+            raise MatrixError('Input dimensions do not align.  Row dims must match horizontally, col dims must match'
+                              'vertically')
+
+        # concatenate left matrices and right matrices i.e. left and right half
+        # stack vertically
+        concat_order = [[top_left.ls_entries, bottom_left.ls_entries], [top_right.ls_entries, bottom_right.ls_entries]]
+        col_halves = []
+        for i in range(len(concat_order)):
+            col_halves.append(list(chain(*concat_order[i])))
+
+        # stack the left and right halves horizontally
+        block_mat_ls_entries = list(map(lambda cols: list(chain(*cols)), zip(*col_halves)))
+
+        return block_mat_ls_entries
+
     @staticmethod
     def ones_ls_entries(row_dim, col_dim):
         """
@@ -108,11 +187,24 @@ class Matrix:
 
         Returns: Identity <Matrix>
         """
+        ls_entries = self.identity_ls_entries(size)
+        return self.matrix_factory(ls_entries=ls_entries)
+
+    @staticmethod
+    def identity_ls_entries(size):
+        """
+        Return the ls_entries for an identity matrix of size n
+        Args:
+            size: <int> a positive integer representing the size of the identity matrix
+
+        Returns: <list> ls_entries for identity matrix
+        """
+
         assert isinstance(size, int)
-        ls_zero = self.zero_ls_entries(row_dim=size, col_dim=size)
+        ls_zero = Matrix.zero_ls_entries(row_dim=size, col_dim=size)
         for i in range(size):
             ls_zero[i][i] = 1
-        return self.matrix_factory(ls_entries=ls_zero)
+        return ls_zero
 
     def transpose(self):
         return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
@@ -125,6 +217,7 @@ class Matrix:
             # A * B = (B^T * A^T)^T
             return (self.transpose() * other.transpose()).transpose()
 
+    @MatrixDecorator.use_matrix_factory_decorator
     def __mul__(self, other):
         # self * other
 
@@ -149,7 +242,14 @@ class Matrix:
         else:
             raise MatrixError(f'type: {type(other)} multiplication not supported.')
 
-        return self.matrix_factory(result)
+        return result
+
+    @MatrixDecorator.use_default_matrix_type_decorator
+    def _mul(self, other):
+        """
+        Return __mul__ function result using the default Matrix type i.e. Matrix(result)
+        """
+        return self.__mul__.__wrapped__(self, other)
 
     def __eq__(self, other):
         return self.ls_entries == other.ls_entries
@@ -157,6 +257,9 @@ class Matrix:
     def __str__(self):
         s = "\n".join([str(i) for i in [rows for rows in self.ls_entries]])
         return s
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}\n{self!s}'
 
     def is_square(self):
         return self.len_row == self.len_col
@@ -189,32 +292,46 @@ class Matrix:
 
         return True
 
+    def is_symplectic(self):
+        """ Checks whether matrix is symplectic.  Returns True if symplectic matrix, False otherwise """
+
+        if not self.is_square():
+            return False
+
+        n = self.len_col // 2
+
+        ls_identity = self.identity_ls_entries(n)
+        ls_identity_neg = [[-1 * i for i in inner] for inner in ls_identity]
+        ls_zeros = self.zero_ls_entries(n, n)
+
+        # block matrix must be non-singular, skew-symmetric
+        # Use the typical choice:
+        # [[0  I_n],
+        # [-I_n 0]]
+        block_matrix = Matrix(self.create_block_ls_entries(top_left=Matrix(ls_zeros), top_right=Matrix(ls_identity),
+                                                           bottom_left=Matrix(ls_identity_neg),
+                                                           bottom_right=Matrix(ls_zeros)))
+
+        transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
+
+        if transpose._mul(block_matrix)._mul(self) == block_matrix:
+            return True
+
+        return False
+
     def is_orthogonal(self):
         """
         Test whether column is orthogonal
         """
 
-        # Duplicates code for the identity matrix and then to multiply to avoid max recursion issues in matrix factory
-        # due to the identity matrix being orthogonal
-
         # Get identity matrix
-        ls_zero = self.zero_ls_entries(row_dim=self.len_col, col_dim=self.len_col)
-        for i in range(self.len_col):
-            ls_zero[i][i] = 1
-        I = Matrix(ls_zero)
+        ls_identity = self.identity_ls_entries(self.len_col)
+        I = Matrix(ls_identity)
 
         transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
 
         # Multiply transpose with self and check whether it is equal to the identity matrix
-        result = self.zero_ls_entries(row_dim=self.len_row, col_dim=transpose.len_col)
-        for i in range(self.len_row):
-            # iterate through columns of Y
-            for j in range(transpose.len_col):
-                # iterate through rows of Y
-                for k in range(transpose.len_row):
-                    result[i][j] += self[i][k] * transpose[k][j]
-
-        return Matrix(result) == I
+        return transpose._mul(self) == I
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
@@ -568,3 +685,36 @@ class TestMatrix(unittest.TestCase):
                                [5, 25, 5, 1]])
 
         self.assertFalse(B.is_vandermonde())
+
+    def test_block_creation(self):
+        """ Test that expected block matrix is created """
+        top_left = Matrix([[2, 0], [0, 2]])
+        top_right = Matrix([[0, 0, 0], [0, 0, 0]])
+        bottom_left = Matrix([[1, 1], [1, 1], [1, 1]])
+        bottom_right = Matrix([[3, 0, 0], [0, 3, 0], [0, 0, 3]])
+
+        block = Matrix.create_block_ls_entries(top_left, top_right, bottom_left, bottom_right)
+
+        expected = [[2., 0., 0., 0., 0.],
+                    [0., 2., 0., 0., 0.],
+                    [1., 1., 3., 0., 0.],
+                    [1., 1., 0., 3., 0.],
+                    [1., 1., 0., 0., 3.]]
+
+        import numpy as np  # just for unittest
+        self.assertTrue(np.allclose(block, expected))
+
+    def test_symplectic(self):
+        """ Tests that is_symplectic() evaluates to True for two known symplectic matrices """
+        A = Matrix(ls_entries=[[1, 0, 0, 1],
+                               [0, 1, 1, 0],
+                               [0, 0, 1, 0],
+                               [0, 0, 0, 1]])
+
+        B = Matrix(ls_entries=[[0, 1, 0, 1],
+                               [1, 0, 1, 0],
+                               [0, 0, 0, 1],
+                               [0, 0, 1, 0]])
+
+        self.assertTrue(A.is_symplectic())
+        self.assertTrue(B.is_symplectic())
