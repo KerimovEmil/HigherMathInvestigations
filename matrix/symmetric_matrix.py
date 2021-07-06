@@ -1,5 +1,5 @@
 from matrix.square_matrix import SquareMatrix
-from matrix.basic_matrix import MatrixError
+from matrix.basic_matrix import MatrixError, Matrix
 import pandas as pd
 import unittest
 import copy
@@ -104,7 +104,5 @@ class TestSymmetricMatrix(unittest.TestCase):
         A = SymmetricMatrix(ls_entries=ls_entries)
         D = A.cholesky_decomp()
 
-        import numpy as np
-        
-        self.assertTrue(np.allclose(D[0].ls_entries, [[2, 0, 0], [6, 1, 0], [-8, 5, 3]]))
-        self.assertTrue(np.allclose(D[1].ls_entries, [[2, 6, -8], [0, 1, 5], [0, 0, 3]]))
+        self.assertTrue(D[0] == Matrix([[2, 0, 0], [6, 1, 0], [-8, 5, 3]]))
+        self.assertTrue(D[1] == Matrix([[2, 6, -8], [0, 1, 5], [0, 0, 3]]))
