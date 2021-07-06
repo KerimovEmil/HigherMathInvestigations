@@ -206,8 +206,18 @@ class Matrix:
             ls_zero[i][i] = 1
         return ls_zero
 
+    @MatrixDecorator.use_matrix_factory_decorator
     def transpose(self):
-        return self.__class__(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
+        """ Returns the ls_entries for the transposed matrix """
+        return [[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)]
+
+    @MatrixDecorator.use_default_matrix_type_decorator
+    def _transpose(self):
+        """
+        Return transpose function result using the default Matrix type i.e. Matrix(ls_entries)
+        Should only be used in this file for the is_certain_matrix() functions to address maximum recursion issues
+        """
+        return self.transpose.__wrapped__(self)
 
     def __rmul__(self, other):
         # other * self
@@ -248,6 +258,7 @@ class Matrix:
     def _mul(self, other):
         """
         Return __mul__ function result using the default Matrix type i.e. Matrix(result)
+        Should only be used in this file for the is_certain_matrix() functions to address maximum recursion issues
         """
         return self.__mul__.__wrapped__(self, other)
 
@@ -268,7 +279,7 @@ class Matrix:
 
         # cannot use self == self.transpose in current Matrix Factory set up or else symmetric .transpose() will overwrite
         # and all square matrices will be marked as symmetric
-        return self == Matrix.transpose(Matrix(self.ls_entries))
+        return self == Matrix(self.ls_entries)._transpose()
 
     def is_skew_symmetric(self):
 
@@ -312,9 +323,7 @@ class Matrix:
                                                            bottom_left=Matrix(ls_identity_neg),
                                                            bottom_right=Matrix(ls_zeros)))
 
-        transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
-
-        if transpose._mul(block_matrix)._mul(self) == block_matrix:
+        if self._transpose()._mul(block_matrix)._mul(self) == block_matrix:
             return True
 
         return False
@@ -328,10 +337,8 @@ class Matrix:
         ls_identity = self.identity_ls_entries(self.len_col)
         I = Matrix(ls_identity)
 
-        transpose = Matrix(ls_entries=[[self[j][i] for j in range(self.len_row)] for i in range(self.len_col)])
-
         # Multiply transpose with self and check whether it is equal to the identity matrix
-        return transpose._mul(self) == I
+        return self._transpose()._mul(self) == I
 
     def is_vandermonde(self):
         """ Checks whether matrix is vandermonde.  Returns True if vandermonde matrix, False otherwise """
@@ -374,7 +381,7 @@ class Matrix:
         for i in range(2, num_cols):
             A[i] = [x ** i for x in input_arr]
 
-        return Matrix(A.ls_entries).transpose().ls_entries
+        return Matrix(A.ls_entries)._transpose().ls_entries
 
     def __mod__(self, mod):
         if mod:
