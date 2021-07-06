@@ -9,6 +9,11 @@ class MatrixError(Exception):
     pass
 
 
+# for __eq__ tolerances, these are the same as the np.allclose default tolerances
+RTOL = 1e-5
+ATOL = 1e-8
+
+
 class MatrixDecorator:
     # use_matrix_factory_decorator and use_default_matrix_type_decorator were introduced to address max recursion
     # issues when using Matrix class methods that used other class methods calling self.matrix_factory
@@ -263,7 +268,27 @@ class Matrix:
         return self.__mul__.__wrapped__(self, other)
 
     def __eq__(self, other):
-        return self.ls_entries == other.ls_entries
+        """
+
+        Args:
+            other: <Matrix> to compare self to
+
+        Returns:
+            <bool> whether or not the matrices are element-wise equal within a tolerance
+
+        """
+        # account for floating point error
+        # evaluates to true if:
+        # absolute(a - b) <= (atol + rtol * absolute(max(a,b))
+        # where a and b are the elements to compare
+        for self_ls, other_ls in zip(self.ls_entries, other.ls_entries):
+            for self_elem, other_elem in zip(self_ls, other_ls):
+                rtol_elem = abs(max(self_elem, other_elem))
+                # return False right away when a difference is flagged - no need to continue checking
+                if abs(self_elem - other_elem) > (ATOL + RTOL * rtol_elem):
+                    return False
+
+        return True
 
     def __str__(self):
         s = "\n".join([str(i) for i in [rows for rows in self.ls_entries]])
