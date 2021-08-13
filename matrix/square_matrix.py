@@ -290,6 +290,12 @@ class SquareMatrix(Matrix):
         B = B.elem_pow(0.5)
         return P.__mul__(B).__mul__(P.inverse())
 
+    def trace(self):
+        """
+        Returns: <float> trace of the matrix 
+        """
+        return sum(self.diagonal())
+
 
 class TestSquareMatrix(unittest.TestCase):
     def test_det(self):
@@ -349,3 +355,13 @@ class TestSquareMatrix(unittest.TestCase):
         r_scipy = sqrtm(A_np)
         r = A.square_root().ls_entries
         self.assertTrue(allclose(r_scipy, r))
+
+    def test_trace(self):
+        ls_entries = [[3, 2, 0, 4],
+                      [4, 1, -2, 3],
+                      [-3, -2, -4, 7],
+                      [3, 1, 1, 5]]
+
+        A = SquareMatrix(ls_entries)
+
+        self.assertEqual(A.trace(), 5)

@@ -92,8 +92,9 @@ class TestSquareVandermondeMatrix(unittest.TestCase):
         A_test1 = SquareVandermondeMatrix(ls_entries=A_np1.tolist())
         A_test2 = SquareVandermondeMatrix(ls_entries=A_np2.tolist())
 
-        self.assertEqual(A_test1.determinant(), np.linalg.det(A_np1))
-        self.assertEqual(A_test2.determinant(), np.linalg.det(A_np2))
+        # use np.allclose for better stability - sometimes seeing floating point error when using assertEqual
+        self.assertTrue(np.allclose(A_test1.determinant(), np.linalg.det(A_np1)))
+        self.assertTrue(np.allclose(A_test2.determinant(), np.linalg.det(A_np2)))
 
     def test_interpolating_poly(self):
         input_ls = [(1, -6), (2, 2), (4, 12)]
