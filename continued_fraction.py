@@ -78,7 +78,7 @@ class ContinuedFractionFunctionRoot:
                 break
 
             # define the residual
-            func_ratio = abs(self.f_prime(c_nm1) / self.f(c_nm1))
+            func_ratio = (-1)**(n-1) * self.f_prime(c_nm1) / self.f(c_nm1)  # equivalent to abs(fund_ratio)
             res = func_ratio / (c_nm1.denominator**2) - Fraction(c_nm2.denominator, c_nm1.denominator)
 
             # setting B >= y_n + 1, ensures that at least one B > y_n
@@ -124,6 +124,7 @@ if __name__ == '__main__':
     print(cf_func_root.get_ls_a_n(max_n=50))
 
     # # note that this does not work for transcendental numbers like pi, as an error rate needs to be introduced
+    # # this is due to the fact that functions like sin(x) do not maintain the fraction class, hence lose precision
     # print('get continued fraction of pi by defining f(x) = sin(x)')
     # cf_func_root = ContinuedFractionFunctionRoot(f=sin, f_prime=cos,
     #                                              decimal_approx=3.1415926535, min_n=4)
