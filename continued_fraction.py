@@ -1,16 +1,9 @@
-import decimal
+import unittest
 from fractions import Fraction
 from typing import Callable, Iterator, Union, Optional, List
 from math import sin, cos, tan
 # don't work with Fraction
 # from numpy import sin, cos
-# from mpmath import sin, cos, cot
-
-decimal.getcontext().prec = 100
-PI = decimal.Decimal('3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534'
-                     '2117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622'
-                     '9489549303819644288109756659334461284756')
-E = decimal.Decimal('2.71828182845904523536028747135266249775724709369995')
 
 
 class ContinuedFraction:
@@ -36,9 +29,17 @@ class ContinuedFraction:
             ans = i + Fraction(1, ans)
         return ans
 
-    def fraction(self) -> Fraction:
-        """Returns the fraction approximation as defined by self.n_continued_fraction"""
-        return self.static_fraction(self.n_continued_fraction)
+    def fraction(self, convergent: int = None) -> Fraction:
+        """
+        Returns the fraction approximation as defined by self.n_continued_fraction
+        Args:
+            convergent: if not specified then assuming all of self.n_continued_fraction is used.
+        """
+        if convergent is None:
+            ls_an = self.n_continued_fraction
+        else:
+            ls_an = self.n_continued_fraction[:convergent]
+        return self.static_fraction(ls_an)
 
     def approx(self) -> float:
         """Returns the approximation as defined by self.n_continued_fraction"""
@@ -85,9 +86,9 @@ class ContinuedFractionFunctionRoot:
 
         n = len(self.ls_a_n) + 1
         # get the n-2 convergent
-        c_nm2 = cf.static_fraction(self.ls_a_n[:-1])
+        c_nm2 = ContinuedFraction.static_fraction(self.ls_a_n[:-1])
         # get the n-1 convergent
-        c_nm1 = cf.static_fraction(self.ls_a_n)
+        c_nm1 = ContinuedFraction.static_fraction(self.ls_a_n)
 
         # define the ratio of f'/f
         if self.f_prime_ratio is None:
@@ -103,7 +104,7 @@ class ContinuedFractionFunctionRoot:
 
             # define the residual
             # func_ratio = (-1)**(n-1) * self.f_prime(c_nm1) / self.f(c_nm1)  # equivalent to abs(fund_ratio)
-            func_ratio = (-1)**(n-1) * f_prime_ratio(c_nm1)
+            func_ratio = (-1)**(n-1) * f_prime_ratio(c_nm1)  # equivalent to abs(fund_ratio)
             res = func_ratio / (c_nm1.denominator**2) - Fraction(c_nm2.denominator, c_nm1.denominator)
 
             # setting B >= y_n + 1, ensures that at least one B > y_n
@@ -131,22 +132,62 @@ def print_continued_fraction(num, n):
     print('-----------------------------------------------------------------------------------------------')
 
 
+class TestCF(unittest.TestCase):
+    def test_cubic_irrational(self):
+        cf_func_root = ContinuedFractionFunctionRoot(f=lambda x: x ** 3 - 2,
+                                                     f_prime=lambda x: 3 * x ** 2,
+                                                     decimal_approx=2 ** (1 / 3))
+        with self.subTest('2^(1/3), n=10'):
+            self.assertEqual(
+                cf_func_root.get_ls_a_n(max_n=10),
+                [1, 3, 1, 5, 1, 1, 4, 1, 1, 8]
+                             )
+        with self.subTest('2^(1/3), n=50'):
+            self.assertEqual(
+                cf_func_root.get_ls_a_n(max_n=50),
+                [1, 3, 1, 5, 1, 1, 4, 1, 1, 8, 1, 14, 1, 10, 2, 1, 4, 12, 2, 3, 2, 1, 3, 4, 1, 1, 2, 14, 3, 12, 1, 15,
+                 3, 1, 4, 534, 1, 1, 5, 1, 1, 121, 1, 2, 2, 4, 10, 3, 2, 2, 41, 1, 1, 1, 3, 7, 2, 2, 9, 4, 1, 3, 7, 6,
+                 1, 1, 2, 2, 9, 3]
+                             )
+
+    def test_decimal_method(self):
+        """Testing continued fraction using decimal method"""
+        import decimal
+        decimal.getcontext().prec = 100
+
+        PI = decimal.Decimal(
+            '3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534'
+            '2117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622'
+            '9489549303819644288109756659334461284756')
+
+        # testing pi
+        cf = ContinuedFraction(PI)
+        with self.subTest('pi, n=17, continued fraction'):
+            self.assertEqual(
+                cf.get_continued_fraction(17),
+                [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2]
+                             )
+        # test convergent fraction
+        with self.subTest('pi, n=2, convergent'):
+            self.assertEqual(cf.fraction(convergent=2), Fraction(22, 7))
+        with self.subTest('pi, n=17, convergent'):
+            self.assertEqual(cf.fraction(), Fraction(2549491779, 811528438))  # all 17
+
+        E = decimal.Decimal('2.71828182845904523536028747135266249775724709369995')
+
+        with self.subTest('(e^2-1)/(e^2+1), n=20, continued fraction'):
+            cf = ContinuedFraction((E**2 - 1)/(E**2 + 1))
+            self.assertEqual(
+                cf.get_continued_fraction(20),
+                [0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39]
+                             )
+        with self.subTest('(e^2-1)/(e^2+1), n=20, convergent'):
+            self.assertEqual(cf.fraction(),
+                             Fraction(371079370602386712421365, 487240307321817004499776))
+
+
 if __name__ == '__main__':
-    # get continued fraction expansion of pi using basic method
-    print('get continued fraction of pi using basic method')
-    print_continued_fraction(PI, 17)
-
-    # get continued fraction expansion of (e^2-1)/(e^2+1) using basic method
-    print('get continued fraction of (e^2-1)/(e^2+1) using basic method')
-    cf = ContinuedFraction((E**2 - 1)/(E**2 + 1))
-    ls_cf = cf.get_continued_fraction(20)
-    print(ls_cf, cf.fraction())
-
-    # define polynomial solution
-    print('get continued fraction of 2^(1/3) by defining f(x) = x^3 - 2')
-    cf_func_root = ContinuedFractionFunctionRoot(f=lambda x: x**3 - 2, f_prime=lambda x: 3*x**2,
-                                                 decimal_approx=2**(1/3))
-    print(cf_func_root.get_ls_a_n(max_n=50))
+    unittest.main()
 
     # # note that this does not work for transcendental numbers like pi, as an error rate needs to be introduced
     # # this is due to the fact that functions like sin(x) do not maintain the fraction class, hence lose precision
