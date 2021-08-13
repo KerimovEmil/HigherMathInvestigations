@@ -63,10 +63,6 @@ class ContinuedFractionFunctionRoot:
             min_calculation = min_n if min_n is not None else 2
             self.ls_a_n = ContinuedFraction(decimal_approx).get_continued_fraction(min_calculation)
 
-    @staticmethod
-    def get_basic_continued_fraction(x):
-        return int(x), 1/(x-int(x))
-
     def get_ls_a_n(self, max_n: int):
 
         n = len(self.ls_a_n) + 1
@@ -83,7 +79,7 @@ class ContinuedFractionFunctionRoot:
 
             # define the residual
             func_ratio = abs(self.f_prime(c_nm1) / self.f(c_nm1))
-            res = func_ratio / (c_nm1.denominator**2) - c_nm2.denominator / c_nm1.denominator
+            res = func_ratio / (c_nm1.denominator**2) - Fraction(c_nm2.denominator, c_nm1.denominator)
 
             # setting B >= y_n + 1, ensures that at least one B > y_n
             B = max(self.b * c_nm1.denominator ** 2, c_nm1.denominator + 1)
@@ -91,7 +87,8 @@ class ContinuedFractionFunctionRoot:
             m = 0
             while c_nm1.denominator < B:
                 m += 1
-                a_n, res = self.get_basic_continued_fraction(res)
+                a_n = int(res)
+                res = 1 / (res - a_n)
                 self.ls_a_n.append(a_n)
                 # set the n-1 and n-2 convergents
                 c_nm2 = c_nm1
@@ -124,7 +121,7 @@ if __name__ == '__main__':
     print('get continued fraction of 2^(1/3) by defining f(x) = x^3 - 2')
     cf_func_root = ContinuedFractionFunctionRoot(f=lambda x: x**3 - 2, f_prime=lambda x: 3*x**2,
                                                  decimal_approx=2**(1/3))
-    print(cf_func_root.get_ls_a_n(max_n=17))
+    print(cf_func_root.get_ls_a_n(max_n=50))
 
     # # note that this does not work for transcendental numbers like pi, as an error rate needs to be introduced
     # print('get continued fraction of pi by defining f(x) = sin(x)')
