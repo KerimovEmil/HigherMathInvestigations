@@ -100,12 +100,15 @@ class ContinuedFractionFunctionRoot:
                 break
 
             # define the residual
-            # func_ratio = (-1)**(n-1) * self.f_prime(c_nm1) / self.f(c_nm1)  # equivalent to abs(fund_ratio)
             func_ratio = (-1)**(n-1) * f_prime_ratio(c_nm1)  # equivalent to abs(fund_ratio)
+            # for non-algebraic functions, we need to ensure precision up to yn^(-4) or y_n^(-2.5), where y_n is the
+            # denominator of t_n = x_n / y_n
+
             res = func_ratio / (c_nm1.denominator**2) - Fraction(c_nm2.denominator, c_nm1.denominator)
 
             # setting B >= y_n + 1, ensures that at least one B > y_n
             B = max(self.b * c_nm1.denominator ** 2, c_nm1.denominator + 1)
+            # B = c_nm1.denominator ** 1.9
 
             m = 0
             while c_nm1.denominator < B:
@@ -116,6 +119,8 @@ class ContinuedFractionFunctionRoot:
                 # set the n-1 and n-2 convergents
                 c_nm2 = c_nm1
                 c_nm1 = ContinuedFraction.static_fraction(self.ls_a_n)
+                if n + m > max_n:
+                    break
 
             n += m
         return self.ls_a_n
@@ -136,12 +141,12 @@ class TestCF(unittest.TestCase):
                                                      decimal_approx=2 ** (1 / 3))
         with self.subTest('2^(1/3), n=10'):
             self.assertEqual(
-                cf_func_root.get_ls_a_n(max_n=10),
+                cf_func_root.get_ls_a_n(max_n=11)[:10],
                 [1, 3, 1, 5, 1, 1, 4, 1, 1, 8]
                              )
-        with self.subTest('2^(1/3), n=50'):
+        with self.subTest('2^(1/3), n=70'):
             self.assertEqual(
-                cf_func_root.get_ls_a_n(max_n=50),
+                cf_func_root.get_ls_a_n(max_n=71)[:70],
                 [1, 3, 1, 5, 1, 1, 4, 1, 1, 8, 1, 14, 1, 10, 2, 1, 4, 12, 2, 3, 2, 1, 3, 4, 1, 1, 2, 14, 3, 12, 1, 15,
                  3, 1, 4, 534, 1, 1, 5, 1, 1, 121, 1, 2, 2, 4, 10, 3, 2, 2, 41, 1, 1, 1, 3, 7, 2, 2, 9, 4, 1, 3, 7, 6,
                  1, 1, 2, 2, 9, 3]
@@ -188,12 +193,12 @@ class TestCF(unittest.TestCase):
                                                      decimal_approx=2 ** (1 / 2))
         with self.subTest('2^(1/2), n=10'):
             self.assertEqual(
-                cf_func_root.get_ls_a_n(max_n=10)[:10],
+                cf_func_root.get_ls_a_n(max_n=11)[:10],
                 [1, 2, 2, 2, 2, 2, 2, 2, 2, 2]
                              )
         with self.subTest('2^(1/2), n=50'):
             self.assertEqual(
-                cf_func_root.get_ls_a_n(max_n=50)[:50],
+                cf_func_root.get_ls_a_n(max_n=51)[:50],
                 [1] + [2]*49
                              )
 
@@ -211,11 +216,11 @@ class TestCF(unittest.TestCase):
                              )
 
         # # todo see if we can change B to fix this test
-        # this fails due to the fact that functions like sin(x) are not fractions, hence lose precision
+        # # this fails due to the fact that functions like sin(x) are not fractions, hence lose precision
         # # this is an issue for all transcendental numbers like pi, as an error rate needs to be introduced
         # with self.subTest('pi, n=15'):
         #     self.assertEqual(
-        #         cf_func_root.get_ls_a_n(max_n=15)[:15],
+        #         cf_func_root.get_ls_a_n(max_n=16)[:15],
         #         [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1]
         #                      )
 
