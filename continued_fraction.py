@@ -1,9 +1,6 @@
 import unittest
 from fractions import Fraction
-from typing import Callable, Iterator, Union, Optional, List
-from math import sin, cos, tan
-# don't work with Fraction
-# from numpy import sin, cos
+from typing import Callable, Union
 
 
 class ContinuedFraction:
@@ -56,7 +53,7 @@ class ContinuedFractionFunctionRoot:
     # to get continued fraction without requiring a precise decimal expansion
     def __init__(self, f: Callable[[Union[float, Fraction]], float], f_prime: Callable[[Union[float, Fraction]], float],
                  f_prime_ratio: Callable[[Union[float, Fraction]], float] = None,
-                 min_n=None, ls_an=None, decimal_approx=None):
+                 min_n=None, ls_an=None, decimal_approx=None, b=1/100):
         """
 
         Args:
@@ -73,7 +70,7 @@ class ContinuedFractionFunctionRoot:
             self.f_prime_ratio = None
         else:
             self.f_prime_ratio = f_prime_ratio
-        self.b = 1/100  # can be determined from f'(x) and f''(x) somehow, but 1/100 works for most
+        self.b = b  # can be determined from f'(x) and f''(x) somehow, but 1/100 works for most
 
         # get initial first few (only two needed) continued fraction values of the number
         if ls_an is not None:
@@ -185,13 +182,43 @@ class TestCF(unittest.TestCase):
             self.assertEqual(cf.fraction(),
                              Fraction(371079370602386712421365, 487240307321817004499776))
 
+    def test_quadratic_irrational(self):
+        cf_func_root = ContinuedFractionFunctionRoot(f=lambda x: x ** 2 - 2,
+                                                     f_prime=lambda x: 2 * x,
+                                                     decimal_approx=2 ** (1 / 2))
+        with self.subTest('2^(1/2), n=10'):
+            self.assertEqual(
+                cf_func_root.get_ls_a_n(max_n=10)[:10],
+                [1, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+                             )
+        with self.subTest('2^(1/2), n=50'):
+            self.assertEqual(
+                cf_func_root.get_ls_a_n(max_n=50)[:50],
+                [1] + [2]*49
+                             )
+
+    def test_transcendental_pi_using_root(self):
+        from math import sin, cos
+        # from math import tan
+
+        cf_func_root = ContinuedFractionFunctionRoot(f=sin, f_prime=cos,
+                                                     # f_prime_ratio=lambda x: 1/tan(x),
+                                                     decimal_approx=3.1415926535)
+        with self.subTest('pi, n=13'):
+            self.assertEqual(
+                cf_func_root.get_ls_a_n(max_n=13)[:13],
+                [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
+                             )
+
+        # # todo see if we can change B to fix this test
+        # this fails due to the fact that functions like sin(x) are not fractions, hence lose precision
+        # # this is an issue for all transcendental numbers like pi, as an error rate needs to be introduced
+        # with self.subTest('pi, n=15'):
+        #     self.assertEqual(
+        #         cf_func_root.get_ls_a_n(max_n=15)[:15],
+        #         [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1]
+        #                      )
+
 
 if __name__ == '__main__':
     unittest.main()
-
-    # # note that this does not work for transcendental numbers like pi, as an error rate needs to be introduced
-    # # this is due to the fact that functions like sin(x) do not maintain the fraction class, hence lose precision
-    # print('get continued fraction of pi by defining f(x) = sin(x)')
-    # cf_func_root = ContinuedFractionFunctionRoot(f=sin, f_prime=cos, f_prime_ratio=lambda x: 1/tan(x),
-    #                                              decimal_approx=3.1415926535, min_n=4)
-    # print(cf_func_root.get_ls_a_n(max_n=17))
