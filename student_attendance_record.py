@@ -14,7 +14,10 @@ from functools import lru_cache
 
 # these relations can be summarized as
 # a(n) = a(n-1) + a(n-2) + a(n-3), a(1)=1, a(2)=2, a(3)=4
-# p(n) = p(n-1) + p(n-2) + p(n-3) + a(n-1) + a(n-2) + a(n-3), p(0)=0, p(1)=1, p(2)=4
+# p(n) = p(n-1) + p(n-2) + p(n-3) + a(n), p(0)=0, p(1)=1, p(2)=4
+
+# note that total(n) = a(n) + p(n) + L(n)
+# this simplifies to total(n) = p(n+1)
 
 
 @lru_cache(maxsize=None)
