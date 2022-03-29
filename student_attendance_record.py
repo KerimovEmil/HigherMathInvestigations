@@ -1,9 +1,10 @@
 import unittest
+from functools import lru_cache
 
 # see derivation of solution here:
 # https://massivealgorithms.blogspot.com/2017/04/leetcode-552-student-attendance-record.html
 
-# p(n) = a(n) + p(n-1) + l(n-1)
+# p(n) = a(n-1) + p(n-1) + l(n-1)
 # l(n) = a(n-1) + p(n-1) + a(n-2) + p(n-2)
 # a(n) = a(n-1) + a(n-2) + a(n-3)
 
@@ -13,15 +14,17 @@ import unittest
 
 # these relations can be summarized as
 # a(n) = a(n-1) + a(n-2) + a(n-3), a(1)=1, a(2)=2, a(3)=4
-# p(n) = p(n-1) + p(n-2) + p(n-3) + a(n) + a(n-2) + a(n-3), p(0)=0, p(1)=1, p(2)=4
+# p(n) = p(n-1) + p(n-2) + p(n-3) + a(n-1) + a(n-2) + a(n-3), p(0)=0, p(1)=1, p(2)=4
 
 
+@lru_cache(maxsize=None)
 def p(n: int) -> int:
     if n == 1:
         return 1
-    return a(n) + p(n-1) + L(n-1)
+    return a(n-1) + p(n-1) + L(n-1)
 
 
+@lru_cache(maxsize=None)
 def L(n: int) -> int:
     if n == 1:
         return 1
@@ -30,6 +33,7 @@ def L(n: int) -> int:
     return a(n-1) + p(n-1) + a(n-2) + p(n-2)
 
 
+@lru_cache(maxsize=None)
 def a(n: int) -> int:
     if n == 0:
         return 1
@@ -65,7 +69,7 @@ def a_analytical(n: int) -> int:
 
 
 def p_analytical(n: int) -> int:
-    ans = 1/22 * (17*n * t(n+1) + (2+3*n)*t(n) + (4+4*n)*t(n-1))
+    ans = 1/22 * (10*n * t(n+1) + (7+5*n)*t(n) + (3+3*n)*t(n-1))
     return int(round(ans, 0))
 
 
@@ -110,19 +114,19 @@ if __name__ == '__main__':
 #         return 1
 #     return t(n-1) + t(n-2) + t(n-3)
 #
-#
 # def p(n: int) -> int:
-#     if n == 0:
-#         return 0
 #     if n == 1:
 #         return 1
 #     if n == 2:
-#         return 4
-#     return t(n+1) + t(n-1) + t(n-2) + p(n-1) + p(n-2) + p(n-3)
+#         return 3
+#     if n == 3:
+#         return 8
+#     return t(n) + t(n-1) + t(n-2) + p(n-1) + p(n-2) + p(n-3)
+
 #
 # ls_eq = []
 # for n in range(16):
 #     eq = Eq(p(n), (a1 + b1 * n) * t(n+1) + (a2 + b2 * n) * t(n) + (a3 + b3 * n) * t(n-1) + (a4 + b4 * n) * t(n-2))
 #     ls_eq.append(eq)
 #
-# ans = solve(*ls_eq, (a1, a2, a3, a4, b1, b2, b3, b4))
+# ans = solve(ls_eq, (a1, a2, a3, a4, b1, b2, b3, b4))
