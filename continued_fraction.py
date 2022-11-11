@@ -99,7 +99,7 @@ class ContinuedFractionFunctionRoot:
                 print(f'check failed for n={n}')
                 break
 
-            # define the residual
+            # define the residual  # todo change this since func_ratio will always be a very large number
             func_ratio = (-1)**(n-1) * f_prime_ratio(c_nm1)  # equivalent to abs(fund_ratio)
             # for non-algebraic functions, we need to ensure precision up to yn^(-4) or y_n^(-2.5), where y_n is the
             # denominator of t_n = x_n / y_n
