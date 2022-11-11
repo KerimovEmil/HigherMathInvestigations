@@ -1,5 +1,6 @@
 import unittest
 from cmath import exp, pi
+from math import factorial
 
 
 class BasicPolynomial:
@@ -185,6 +186,9 @@ class BasicPolynomial:
         dc = {p: c % other for p, c in self.dc_powers.items()}
         return BasicPolynomial(dc, self.v)
 
+    def generating_function_values(self):
+        return [c * factorial(p) for p, c in self.dc_powers.items()]
+
 
 class TestPolynomial(unittest.TestCase):
 
@@ -226,3 +230,9 @@ class TestPolynomial(unittest.TestCase):
         with self.subTest('inverse'):
             # 1/(1-x) = 1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + ...
             self.assertEqual(BasicPolynomial({0: 1, 1: -1}).invert(5), BasicPolynomial({i: 1 for i in range(6)}))
+        with self.subTest('Euler Numbers'):
+            cosh = BasicPolynomial({2 * n: 1 / factorial(2 * n) for n in range(5)})
+            ls_euler = cosh.invert(10).generating_function_values()
+            ls_correct = [-1, 5, -61, 1385]
+            for i in range(len(ls_correct)):
+                self.assertAlmostEqual(ls_correct[i], ls_euler[i])
