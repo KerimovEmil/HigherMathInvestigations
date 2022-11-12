@@ -144,9 +144,7 @@ class QuadraticForm:
         return QuadraticForm(a=int(new_matrix[0][0]), b=int(2 * new_matrix[1][0]), c=int(new_matrix[1][1]))
 
     def __eq__(self, other):
-        if self.f.a == other.f.a and self.f.b == other.f.b and self.f.c == other.f.c:
-            return True
-        return False
+        return self.f.a == other.f.a and self.f.b == other.f.b and self.f.c == other.f.c
 
     def is_proper(self):
         """Returns boolean if form is 'proper'. This means not all values are scaled by the same integer"""
@@ -256,7 +254,7 @@ def get_reduced_forms(D, debug=False):
                     if debug:
                         print(quad_form)
                 if b != 0:
-                    # For a negative class number, all of the reduced forms, have possible duplicates of these two types
+                    # For a negative class number, all reduced forms have possible duplicates of these two types
                     #     1)  (a,b,a) ~ (a,-b,a)
                     #     2)  (a,a,c) ~ (a,-a,c)
                     if -b == a:
@@ -274,7 +272,7 @@ def get_reduced_forms(D, debug=False):
 
 def remove_duplicate_negative_reduced_forms(iter_reduced):  # not used, but keeping in case required later
     """
-    For a negative class number, all of the reduced forms, have possible duplicates of these two types.
+    For a negative class number, all reduced forms have possible duplicates of these two types.
     1)  (a,b,a) ~ (a,-b,a)
     2)  (a,a,c) ~ (a,-a,c)
 
