@@ -151,6 +151,34 @@ class BasicPolynomial:
 
         return ret
 
+    def generating_function_str(self, integer_value: bool = False) -> str:
+        """This is an alternative method to the __str__ method but specifically for generating functions."""
+        ret = ''
+        for p, c in enumerate(self.generating_function_values(integer_value=integer_value)):
+            if c == 0:
+                continue
+            if len(ret) != 0:
+                if c > 0:
+                    ret += ' + '
+                else:
+                    ret += ' - '
+            if abs(c) == 1:
+                if p == 1:
+                    ret += self.v
+                elif p == 0:
+                    ret += '1'
+                else:
+                    ret += f'{self.v}^{p}/{p}!'
+            else:
+                if p == 1:
+                    ret += f'{abs(c)}{self.v}'
+                elif p == 0:
+                    ret += f'{abs(c)}'
+                else:
+                    ret += f'{abs(c)}{self.v}^{p}/{p}!'
+
+        return ret
+
     def __repr__(self):
         """
         Python __repr__() function returns the object representation.
@@ -186,9 +214,13 @@ class BasicPolynomial:
         dc = {p: c % other for p, c in self.dc_powers.items()}
         return BasicPolynomial(dc, self.v)
 
-    def generating_function_values(self) -> list:
+    def generating_function_values(self, integer_value: bool = False) -> list:
         """Return a_n such that f(x) = sum_{n=0}^{2inf} a_n x^n / n!"""
-        return [self.dc_powers.get(p, 0) * factorial(p) for p in range(self.degree() + 1)]
+        if integer_value:
+            f = int
+        else:
+            def f(x): return x
+        return [f(self.dc_powers.get(p, 0) * factorial(p)) for p in range(self.degree() + 1)]
 
 
 class TestPolynomial(unittest.TestCase):
@@ -251,3 +283,6 @@ class TestPolynomial(unittest.TestCase):
             ls_correct = [1, 0, -1, 0,  5, 0, -61, 0, 1385]
             for i in range(len(ls_correct)):
                 self.assertAlmostEqual(ls_correct[i], ls_euler[i])
+
+            g_func_str = '1 - x^2/2! + 5x^4/4! - 61x^6/6! + 1385x^8/8! - 50520x^10/10!'
+            self.assertTrue(cosh.invert(10).generating_function_str(integer_value=True).startswith(g_func_str))
