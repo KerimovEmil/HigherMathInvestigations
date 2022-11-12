@@ -188,7 +188,7 @@ class BasicPolynomial:
 
     def generating_function_values(self) -> list:
         """Return a_n such that f(x) = sum_{n=0}^{2inf} a_n x^n / n!"""
-        return [self.dc_powers.get(p, 0) * factorial(p) for p in range(max(self.dc_powers.keys()))]
+        return [self.dc_powers.get(p, 0) * factorial(p) for p in range(self.degree() + 1)]
 
 
 class TestPolynomial(unittest.TestCase):
@@ -197,42 +197,56 @@ class TestPolynomial(unittest.TestCase):
         poly_x = BasicPolynomial({1: 1})  # f(x) = x
         poly_2 = BasicPolynomial({0: 2, 1: -1, 3: 1})  # f(x) = 2 - x + x^3
         poly_3 = BasicPolynomial({-1: -3, 0: 2, 1: -1})  # f(x) = -3/x + 2 - x
+
         with self.subTest('call x'):
             for i in range(10):
                 self.assertEqual(poly_x(i), i)
+
         with self.subTest('addition'):
             self.assertEqual(BasicPolynomial({0: 2, 3: 1}), poly_x + poly_2)
+
         with self.subTest('subtraction'):
             self.assertEqual(poly_3 - poly_3, 0)
+
         with self.subTest('call x for poly 3'):
             f = lambda x: -3/x + 2 - x
             for i in range(1, 10):
                 self.assertAlmostEqual(poly_3(i), f(i))
+
         with self.subTest('string'):
             self.assertEqual(str(poly_3), '3/x + 2 - x')
+
         with self.subTest('simple multiplication'):
             # x*(2 - x + x^3) = 2x - x^2 + x^4
             self.assertEqual(BasicPolynomial({1: 2, 2: -1, 4: 1}), poly_x*poly_2)
+
         with self.subTest('multiplication'):
             # (-3/x + 2 - x)*(2 - x + x^3) = -6/x + 7 -4x - 2x^2 +2x^3 - x^4
             self.assertEqual(BasicPolynomial({-1: -6, 0: 7, 1: -4, 2: -2, 3: 2, 4: -1}), poly_3*poly_2)
+
         with self.subTest('q_eval t=0'):  # t=0 -> q=1
             # -3/x + 2 - x -> -3 + 2 -1 = -2
-            self.assertEqual(-2, poly_3.q_eval(0, debug=True))
+            self.assertEqual(-2, poly_3.q_eval(0, debug=False))
             # 2 - x + x^3 -> 2 - 1 + 1 = 2
-            self.assertEqual(2, poly_2.q_eval(0, debug=True))
+            self.assertEqual(2, poly_2.q_eval(0, debug=False))
+
         with self.subTest('q_eval t=1'):  # t=1 -> q=-1
             # -3/x + 2 - x -> 3 + 2 +1 = 6
-            self.assertEqual(6, poly_3.q_eval(1, debug=True))
+            self.assertEqual(6, poly_3.q_eval(1, debug=False))
             # 2 - x + x^3 -> 2 + 1 - 1 = 2
-            self.assertEqual(2, poly_2.q_eval(1, debug=True))
+            self.assertEqual(2, poly_2.q_eval(1, debug=False))
+
         with self.subTest('power'):
             self.assertEqual(BasicPolynomial({5: 1}), poly_x**5)
+
         with self.subTest('inverse'):
             # 1/(1-x) = 1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + ...
             self.assertEqual(BasicPolynomial({0: 1, 1: -1}).invert(5), BasicPolynomial({i: 1 for i in range(6)}))
+
         with self.subTest('Euler Numbers'):
+            # cosh(x) = (e^x + e^-x)/2
             cosh = BasicPolynomial({2 * n: 1 / factorial(2 * n) for n in range(5)})
+            # 1/cosh(x) = sum_{n=0}^{inf} E_n x^n / n!
             ls_euler = cosh.invert(10).generating_function_values()
             ls_correct = [1, 0, -1, 0,  5, 0, -61, 0, 1385]
             for i in range(len(ls_correct)):
