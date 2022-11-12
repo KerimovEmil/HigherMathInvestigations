@@ -186,8 +186,9 @@ class BasicPolynomial:
         dc = {p: c % other for p, c in self.dc_powers.items()}
         return BasicPolynomial(dc, self.v)
 
-    def generating_function_values(self):
-        return [c * factorial(p) for p, c in self.dc_powers.items()]
+    def generating_function_values(self) -> list:
+        """Return a_n such that f(x) = sum_{n=0}^{2inf} a_n x^n / n!"""
+        return [self.dc_powers.get(p, 0) * factorial(p) for p in range(max(self.dc_powers.keys()))]
 
 
 class TestPolynomial(unittest.TestCase):
@@ -233,6 +234,6 @@ class TestPolynomial(unittest.TestCase):
         with self.subTest('Euler Numbers'):
             cosh = BasicPolynomial({2 * n: 1 / factorial(2 * n) for n in range(5)})
             ls_euler = cosh.invert(10).generating_function_values()
-            ls_correct = [-1, 5, -61, 1385]
+            ls_correct = [1, 0, -1, 0,  5, 0, -61, 0, 1385]
             for i in range(len(ls_correct)):
                 self.assertAlmostEqual(ls_correct[i], ls_euler[i])
