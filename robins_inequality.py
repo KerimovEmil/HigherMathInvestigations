@@ -1,5 +1,8 @@
 """
 https://en.wikipedia.org/wiki/Divisor_function
+paper by Jeffrey C. Lagarias: https://arxiv.org/pdf/math/0008177.pdf
+
+This inequality for n>5040 is equivalent to the Riemann Hypothesis
 """
 from math import exp, log
 from divisor import divisors
