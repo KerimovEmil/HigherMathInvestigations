@@ -2,7 +2,7 @@
 https://en.wikipedia.org/wiki/Divisor_function
 paper by Jeffrey C. Lagarias: https://arxiv.org/pdf/math/0008177.pdf
 
-This inequality for n>5040 is equivalent to the Riemann Hypothesis
+This inequality for n>1 is equivalent to the Riemann Hypothesis
 """
 from math import exp, log
 from divisor import divisors
@@ -32,8 +32,6 @@ def plotting(ls_x, ls_y):
 
     ax.scatter(ls_x, ls_y, s=2, label='$h_n + e^{h_n}\ln(h_n) - \sigma(n)$')  # Use LaTeX to render label
 
-    ax.axvline(x=5040, ls='--', c='red', linewidth=1, label='starting value = 5040')  # Add vertical line at n=5040
-
     ax.axhline(y=0, color='black', linestyle='--')  # Add horizontal line at y=0
 
     ax.set_title("Robin's inequality", fontsize=20, fontweight='bold')  # Set the plot title
@@ -48,7 +46,7 @@ def plotting(ls_x, ls_y):
 
 
 if __name__ == '__main__':
-    n_range = range(5041, 10000)  # change upper bound to 20,000 to achieve the stored plot
+    n_range = range(2, 20000)  # change upper bound to 20,000 to achieve the stored plot
     ls = [robin_ineq(n) for n in n_range]
 
     plotting(ls_x=n_range, ls_y=ls)
