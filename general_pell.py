@@ -27,6 +27,21 @@ class FieldExtensionD:
         s = self.y * other.x + self.x * other.y
         return FieldExtensionD(x=f, y=s, d=self.d)
 
+    def __add__(self, other):
+        assert self.d == other.d
+        return FieldExtensionD(x=self.x+other.x, y=self.y+other.y, d=self.d)
+
+    def __sub__(self, other):
+        assert self.d == other.d
+        return FieldExtensionD(x=self.x-other.x, y=self.y-other.y, d=self.d)
+
+    def __truediv__(self, other):
+        if not isinstance(other, int):
+            raise NotImplementedError
+        assert self.x % other == 0
+        assert self.y % other == 0
+        return FieldExtensionD(x=self.x // other, y=self.y // other, d=self.d)
+
     def __pow__(self, power: int):
         # power is always greater than 0
         if power <= 0:
