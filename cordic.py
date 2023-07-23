@@ -19,6 +19,7 @@ if __name__ == '__main__':
     k = 1
     # see how fast this product converges
     for i in range(n):
-        print(k)
-        k *= 1 / (1 + 2**(-2*i))**0.5
-    print(k)
+        # k *= 1 / (1 + 2**(-2*i))**0.5
+        t = 1 << (2*i)
+        k *= t / (t + 1)
+        print(f'{i=}, k^2={k}, k={k**0.5}')
