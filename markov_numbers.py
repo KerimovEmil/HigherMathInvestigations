@@ -13,6 +13,14 @@ x^2 + y^2 + (3xy-z)^2
 = 3xyz + 9(xy)^2 - 6xyz
 = 3xy(z + 3xy - 2z)
 = 3xy(3xy - z)
+
+Markov Numbers: 1, 2, 5, 13, 29, 34, 89, 169, 194, 233, 433, 610, 985, 1325, 2897 ...
+LaGrange Numbers = sqrt(9 - 4/markov) =
+LaGrange Numbers^2 = 5, 7, 41/5, 113/13, 257/29, 151/17, 797/89, 1517/169
+
+Uniqueness Conjecture:
+if x<=y<=z, then given z in x^2 + y^2 + z^2 = 3xyz, (x,y) are uniquely determined.
+x^2 + y^2 = 3xyk - k^2
 """
 from fractions import Fraction
 
@@ -20,9 +28,6 @@ from fractions import Fraction
 class MarkovTuple:
     def __init__(self, x: int, y: int, z: int):
         """(x,y,z) such that it satisfies Markov's equation."""
-        # self.x = x
-        # self.y = y
-        # self.z = z
         self.ordered_tup = (min(x, y, z), (x + y + z) - min(x, y, z) - max(x, y, z), max(x, y, z))
 
         self.unique = max(x, y, z)
