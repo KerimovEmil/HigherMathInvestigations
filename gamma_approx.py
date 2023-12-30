@@ -269,7 +269,7 @@ def approximation_ln_gamma(max_n, ls_approx):
         common_obj = Common(x)
 
         # Actual
-        actual = decimal.Decimal(math.factorial(x)).ln()
+        actual = decimal.Decimal(math.factorial(i)).ln()
 
         print('----------------------------------------------------------------------------')
         print("x = {}, actual = {}".format(x, actual))
