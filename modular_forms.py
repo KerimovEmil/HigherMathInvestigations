@@ -23,7 +23,7 @@ def E(k, N):
 
 def discriminant_modular_form(N):
     """
-    \Delta = 1/1728 * (E_4^3 - E_6^2)
+    /Delta = 1/1728 * (E_4^3 - E_6^2)
     Args:
         N: highest power to approximate E_4 and E_6
     Returns: BasicPolynomial class

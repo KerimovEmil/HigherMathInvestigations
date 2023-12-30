@@ -1,4 +1,13 @@
-"""An interesting way to divide"""
+"""
+Mod tricks in base 10
+
+x mod 2 -> x[-1] mod 2
+x mod 3 -> (sum of digits of x) mod 3
+x mod 4 -> (2 * x[-2] + x[-1]) mod 4
+x mod 5 -> x[-1] mod 5
+
+x mod 9 -> (sum of digits of x) mod 9
+"""
 
 
 def new_mod(a, m):
