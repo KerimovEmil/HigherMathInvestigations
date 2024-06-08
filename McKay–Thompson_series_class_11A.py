@@ -5,19 +5,7 @@
 
 # [1, 4, 28, 268, 3004, 36784, 476476, 6418192, 88986172, 1261473136, ...]
 
-
-import functools
-
-
-def memoize(obj):
-    cache = obj.cache = {}
-
-    @functools.wraps(obj)
-    def memoizer(*args, **kwargs):
-        if args not in cache:
-            cache[args] = obj(*args, **kwargs)
-        return cache[args]
-    return memoizer
+from utils import memoize
 
 
 @memoize
