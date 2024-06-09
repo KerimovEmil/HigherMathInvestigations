@@ -34,20 +34,7 @@ def mobius_sieve(n: int, ls_prime: list[int]) -> list[int]:
     return ls_m
 
 
-# def mobius_weighted_sum(max_n, ls_f) -> float:
-#     partial_sum = 0
-#     ls_m = mobius_sieve(max_n)
-#
-#     for n in range(1, max_n + 1):
-#         partial_sum += ls_m[n] / n * ls_f[n]
-#
-#     return partial_sum
-
-
 def R(x, ls_primes, max_n=10):
-    # return mobius_weighted_sum(max_n=max_n,
-    #                            ls_f=[f_li(pow(x, 1/n), offset=True)
-    #                                  for n in range(1, max_n+1)])
     partial_sum = 0
     ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
 
