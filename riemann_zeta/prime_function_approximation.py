@@ -1,14 +1,11 @@
 """
-phi(x) = sum_{p^n<=x} log(p) = sum_{k<=x} \Lambda(k)
-
-phi(x) = x - 1/2 ln(1-x^-2) - ln(2pi) + 4*sqrt(x)* sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
-where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true)
+References: http://ism.uqam.ca/~ism/pdf/Hutama-scientific%20report.pdf
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import primesieve
-from math import log, sin, cos, pi
+from math import log, sin, cos, pi, atan
 from mpmath import li
 from utils import memoize, timeit
 
@@ -105,7 +102,7 @@ def trivial_zero_R_1(x, ls_primes, max_n=10, num_trivial_zero=10):
 
 
 @timeit
-def trivial_zero_R_2(x, ls_primes, max_n=10, num_trivial_zero=10):
+def trivial_zero_R_2(x, ls_primes, max_n=10):
     """Simplifying using li(x) ~ x/ln(x)"""
     partial_sum = 0
     ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
@@ -119,6 +116,12 @@ def trivial_zero_R_2(x, ls_primes, max_n=10, num_trivial_zero=10):
 
 
 @timeit
+def trivial_zero_R_3(x):
+    """From li(x) = Ei(ln(x)) we get 1/ln(x) - arctan(pi/ln(x))/pi"""
+    return 1/log(x) - atan(pi/log(x)) / pi
+
+
+@timeit
 def prime_counting_rz_approximation(x, ls_rz_zero, ls_primes, max_n=10, num_trivial_zero=10):
     """
     Compute the Chebyshev psi function up to x, using
@@ -128,8 +131,10 @@ def prime_counting_rz_approximation(x, ls_rz_zero, ls_primes, max_n=10, num_triv
     where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true).
     """
     first_term = R(x, ls_primes=ls_primes, max_n=max_n)
+
     # trivial_zero_term = trivial_zero_R_1(x, ls_primes, max_n=max_n, num_trivial_zero=max_trivial_zero)
-    trivial_zero_term = trivial_zero_R_2(x, ls_primes, max_n=max_n, num_trivial_zero=num_trivial_zero)
+    # trivial_zero_term = trivial_zero_R_2(x, ls_primes, max_n=max_n)
+    trivial_zero_term = trivial_zero_R_3(x)
 
     # non_trivial_term = non_trivial_zero_R_1(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
     # non_trivial_term = non_trivial_zero_R_2(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
