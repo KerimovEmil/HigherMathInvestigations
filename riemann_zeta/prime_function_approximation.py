@@ -13,6 +13,11 @@ from mpmath import li
 from utils import memoize, timeit
 
 
+def f_li(x: complex) -> complex:
+    return li(x, offset=True)
+    # return x / log(x)
+
+
 @memoize
 def mobius_sieve(n: int, ls_prime: list[int]) -> list[int]:
     """
@@ -41,99 +46,139 @@ def mobius_sieve(n: int, ls_prime: list[int]) -> list[int]:
 
 def R(x, ls_primes, max_n=10):
     # return mobius_weighted_sum(max_n=max_n,
-    #                            ls_f=[li(pow(x, 1/n), offset=True)
+    #                            ls_f=[f_li(pow(x, 1/n), offset=True)
     #                                  for n in range(1, max_n+1)])
     partial_sum = 0
     ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
 
     for n in range(1, max_n+1):
-        partial_sum += ls_m[n]/n * li(pow(x, 1/n), offset=True)
+        mu = ls_m[n]
+        if mu != 0:
+            partial_sum += mu / n * f_li(pow(x, 1/n))
 
     return partial_sum
 
 
 @timeit
-def non_trivial_zero_R(x, ls_rz_zero, ls_primes, max_n=10):
+def non_trivial_zero_R_1(x, ls_rz_zero, ls_primes, max_n=10):
     partial_sum = 0
     ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
 
     for r in ls_rz_zero:
         for n in range(1, max_n + 1):
-            partial_sum += 2 * ls_m[n] / n * li(pow(x, complex(0.5, r) / n), offset=True).real
+            mu = ls_m[n]
+            if mu != 0:
+                partial_sum += 2 * mu / n * f_li(pow(x, complex(0.5, r) / n)).real
 
     return partial_sum
 
 
 @timeit
-def prime_counting_rz_approximation(x, ls_rz_zero, ls_primes, max_n=10, max_trivial_zero=10):
+def non_trivial_zero_R_2(x, ls_rz_zero, ls_primes, max_n=10):
+    """Simplifying using li(x) ~ x/ln(x)"""
+    partial_sum = 0
+    ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
+
+    for n in range(1, max_n + 1):
+        mu = ls_m[n]
+        if mu != 0:
+            temp_n_partial = mu * pow(x, 1/(2*n))
+            temp_r_partial = 0
+            for r in ls_rz_zero:
+                arg = log(x) * r / n
+                temp_r_partial += (cos(arg) + 2*r*sin(arg)) / (1 + 4 * pow(r, 2))
+
+            partial_sum += temp_n_partial * temp_r_partial
+
+    return partial_sum * 4 / log(x)
+
+
+@timeit
+def non_trivial_zero_R_3(x, ls_rz_zero, ls_primes, max_n=10):
+    """Simplifying using li(x) ~ x/ln(x) and large x simplifications"""
+    partial_sum = 0
+    ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
+
+    for n in range(1, max_n + 1):
+        mu = ls_m[n]
+        if mu != 0:
+            temp_n_partial = mu * pow(x, 1/(2*n))
+            temp_r_partial = 0
+            for r in ls_rz_zero:
+                arg = log(x) * r / n
+                temp_r_partial += sin(arg) / (2 * r)
+
+            partial_sum += temp_n_partial * temp_r_partial
+
+    return partial_sum * 4 / log(x)
+
+@timeit
+def trivial_zero_R_1(x, ls_primes, max_n=10, num_trivial_zero=10):
+    return sum(R(pow(x, -2*m), ls_primes=ls_primes, max_n=max_n) for m in range(1, num_trivial_zero+1))
+
+
+@timeit
+def trivial_zero_R_2(x, ls_primes, max_n=10, num_trivial_zero=10):
+    """Simplifying using li(x) ~ x/ln(x)"""
+    partial_sum = 0
+    ls_m = mobius_sieve(max_n + 1, ls_prime=ls_primes)
+
+    for n in range(1, max_n + 1):
+        mu = ls_m[n]
+        if mu != 0:
+            partial_sum += mu * log(1 - pow(x, -2/n))
+
+    return partial_sum / (2 * log(x))
+
+
+@timeit
+def prime_counting_rz_approximation(x, ls_rz_zero, ls_primes, max_n=10, num_trivial_zero=10):
     """
     Compute the Chebyshev psi function up to x, using
     pi(x) = R(x) - sum_{p} R(x^p), where p is a zero of the RZ function.
     Assuming the RZ hypothesis
-    pi(x) = R(x) - mobius_sum(2*Re(li(x^() sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
+    pi(x) = R(x) - mobius_sum(2*Re(li(x^()
     where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true).
     """
     first_term = R(x, ls_primes=ls_primes, max_n=max_n)
-    trivial_zero_term = sum(R(pow(x, -2*m), ls_primes=ls_primes, max_n=max_n)
-                            for m in range(1, max_trivial_zero+1))
+    # trivial_zero_term = trivial_zero_R_1(x, ls_primes, max_n=max_n, num_trivial_zero=max_trivial_zero)
+    trivial_zero_term = trivial_zero_R_2(x, ls_primes, max_n=max_n, num_trivial_zero=num_trivial_zero)
 
-    non_trivial_term = non_trivial_zero_R(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
-
-    # non_trivial_term = mobius_weighted_sum(max_n=max_n,
-    #                                        ls_f=[2*li(pow(x, complex(0.5, r)), offset=True).real
-    #                                              for r in ls_rz_zero])
-    # non_trivial_term = 0
-    # for r in ls_rz_zero:
-    #     non_trivial_term += 2 * (cos(r*log(x)) + 2*r*sin(r*log(x)))
+    # non_trivial_term = non_trivial_zero_R_1(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
+    # non_trivial_term = non_trivial_zero_R_2(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
+    non_trivial_term = non_trivial_zero_R_3(x, ls_rz_zero, ls_primes=ls_primes, max_n=max_n)
 
     return first_term - trivial_zero_term - non_trivial_term
 
 
-# def prime_counting_rz_approximation_2(x, ls_rz_zero):
-#     """
-#     Compute the Chebyshev psi function up to x, using
-#     phi(x) = x - ln(2pi) + 2*sqrt(x)* sum_{r} sin(rln(x)) /r
-#     where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true).
-#     """
-#     first_term = x - log(2*pi)
-#
-#     second_term = 0
-#     for r in ls_rz_zero:
-#         second_term += sin(r*log(x)) / r
-#
-#     return first_term - 2 * pow(x, 0.5) * second_term
-
-
-def plot_prime_counting_rz_approximation(max_x, ls_rz_zero, max_trivial_zero=10, max_n=10):
+def plot_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_zero=10, max_n=None):
     """
     Plot the prime counting function up to x.
     Args:
         max_x: x-axis for graph
         ls_rz_zero: list of positive imaginary terms of non-trivial RZ zeros
-        max_trivial_zero: maximum non-trivial zeros to include
+        num_trivial_zero: number of non-trivial zeros to include
         max_n: how many terms of the mobius inverse summation to use
     """
     plt.figure(figsize=(10, 6))
+
+    if max_n is None:
+        # max_n = int(log(max_x) / log(2)) + 1
+        max_n = int(log(max_x) - log(2)) + 2
 
     plt.step(range(1, max_x + 1),
              [primesieve.count_primes(i) for i in range(1, max_x + 1)],
              where='post',
              label=r'$\pi(x)$', color='red')
 
-    ls_primes = list(primesieve.primes(max_x))
+    ls_primes = list(primesieve.primes(max_n + 1))
     x_range = np.linspace(2, max_x, max_x*20)
     plt.plot(x_range,
-             [prime_counting_rz_approximation(i, ls_rz_zero, ls_primes=ls_primes, max_n=max_n, max_trivial_zero=max_trivial_zero)
+             [prime_counting_rz_approximation(i, ls_rz_zero, ls_primes=ls_primes, max_n=max_n, num_trivial_zero=num_trivial_zero)
               for i in x_range],
-             label=rf'$\pi_0(x)$ with {len(ls_rz_zero)} non-trivial zeros and {max_trivial_zero} trivial zeros' +
+             label=rf'$\pi_0(x)$ with {len(ls_rz_zero)} non-trivial zeros and {num_trivial_zero} trivial zeros' +
                    f' and {max_n} terms of mobius inversion',
              color='blue')
-
-    # x_range = np.linspace(2, x, x*20)
-    # plt.plot(x_range,
-    #          [prime_counting_rz_approximation_2(i, ls_rz_zero) for i in x_range],
-    #          label=rf'$\psi_1(x)$ with {len(ls_rz_zero)} non-trivial zeros',
-    #          color='green')
 
     # Set x-ticks to be integers
     plt.xticks(np.arange(1, max_x+1, step=max(max_x//10, 1)))
@@ -153,5 +198,4 @@ if __name__ == '__main__':
         for line in f:
             ls_zeros.append(float(line.strip().split(' ')[1]))
 
-    # todo fix this currently does not work
-    plot_prime_counting_rz_approximation(max_x=100, max_n=50, ls_rz_zero=ls_zeros[:50], max_trivial_zero=0)
+    plot_prime_counting_rz_approximation(max_x=100, max_n=None, ls_rz_zero=ls_zeros[:100], num_trivial_zero='all')

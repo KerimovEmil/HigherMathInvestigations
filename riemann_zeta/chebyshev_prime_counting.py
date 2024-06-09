@@ -122,4 +122,4 @@ if __name__ == '__main__':
         for line in f:
             ls_zeros.append(float(line.strip().split(' ')[1]))
 
-    plot_chebyshev_psi_rz_approximation(20, ls_rz_zero=ls_zeros[:10])
+    plot_chebyshev_psi_rz_approximation(100, ls_rz_zero=ls_zeros[:100])
