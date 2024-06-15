@@ -4,6 +4,11 @@ phi(x) = sum_{p^n<=x} log(p) = sum_{k<=x} \Lambda(k)
 phi(x) = x - 1/2 ln(1-x^-2) - ln(2pi) + 4*sqrt(x)* sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
 where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true)
 """
+from utils import memoize, timeit
+
+import matplotlib.animation as animation
+# import imageio
+from matplotlib.ticker import MaxNLocator
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,6 +30,7 @@ def von_mangoldt(n: int, primes_set: set[int]) -> float:
     return 0
 
 
+@memoize
 def chebyshev_psi(x):
     """Compute the Chebyshev psi function up to x."""
     primes = primesieve.primes(x)
@@ -113,6 +119,43 @@ def plot_chebyshev_psi_rz_approximation(x, ls_rz_zero):
     plt.show()
 
 
+def create_gif_chebyshev_psi_rz_approximation(x, ls_rz_zero):
+    """Generate the Chebyshev psi function plot for animation looping over zeros."""
+    fig, ax = plt.subplots(figsize=(10, 6))
+    num_zeros_list = list(range(0, len(ls_rz_zero)))
+
+    psi_values = chebyshev_psi(x)
+    max_y_value = psi_values[-1]
+
+    def update(frame):
+        ax.clear()
+        num_zeros = num_zeros_list[frame]
+        current_zeros = ls_rz_zero[:num_zeros]
+
+        ax.step(range(1, x + 1),
+                psi_values[1:],
+                where='post',
+                label=r'$\psi(x)$', color='red')
+
+        x_range = np.linspace(2, x, x * 20)
+        ax.plot(x_range,
+                [chebyshev_psi_rz_approximation_2(i, current_zeros) for i in x_range],
+                label=rf'$\psi_1(x)$ with {num_zeros} non-trivial zeros',
+                color='blue')
+
+        ax.set_xticks(np.arange(1, x + 1, step=max(x // 10, 1)))
+        ax.set_ylim(top=int(max_y_value)+1)
+
+        ax.set_xlabel('x')
+        ax.set_ylabel(r'$\psi(x)$')
+        ax.set_title('Chebyshev $\psi$ Prime Counting Function')
+        ax.legend()
+
+    num_frames = len(num_zeros_list)
+    ani = animation.FuncAnimation(fig, update, frames=num_frames, repeat=True)
+    ani.save('chebyshev_psi_rz_approximation_loop.gif', writer='pillow')
+
+
 if __name__ == '__main__':
 
     # plot_chebyshev_psi(20)
@@ -122,4 +165,5 @@ if __name__ == '__main__':
         for line in f:
             ls_zeros.append(float(line.strip().split(' ')[1]))
 
-    plot_chebyshev_psi_rz_approximation(100, ls_rz_zero=ls_zeros[:100])
+    # plot_chebyshev_psi_rz_approximation(100, ls_rz_zero=ls_zeros[:100])
+    create_gif_chebyshev_psi_rz_approximation(100, ls_rz_zero=ls_zeros[:100])
