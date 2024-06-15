@@ -4,16 +4,14 @@ phi(x) = sum_{p^n<=x} log(p) = sum_{k<=x} \Lambda(k)
 phi(x) = x - 1/2 ln(1-x^-2) - ln(2pi) + 4*sqrt(x)* sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
 where r are the positive imaginary parts of the zeros of the riemann zeta function (if RH is true)
 """
-from utils import memoize, timeit
-
-import matplotlib.animation as animation
-# import imageio
-from matplotlib.ticker import MaxNLocator
+from utils import memoize
 
 import numpy as np
-import matplotlib.pyplot as plt
 import primesieve
 from math import log, sin, cos, pi
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
 def von_mangoldt(n: int, primes_set: set[int]) -> float:
@@ -114,7 +112,6 @@ def plot_chebyshev_psi_rz_approximation(x, ls_rz_zero):
     plt.ylabel(r'$\psi(x)$')
     plt.title('Chebyshev $\psi$ Prime Counting Function')
     plt.legend()
-    # plt.grid(True)
 
     plt.show()
 

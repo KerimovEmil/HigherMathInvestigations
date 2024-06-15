@@ -8,6 +8,7 @@ import primesieve
 from math import log, sin, cos, pi, atan
 from mpmath import li
 from utils import memoize, timeit
+import matplotlib.animation as animation
 
 
 def f_li(x: complex) -> complex:
@@ -96,6 +97,7 @@ def non_trivial_zero_R_3(x, ls_rz_zero, ls_primes, max_n=10):
 
     return partial_sum * 4 / log(x)
 
+
 @timeit
 def trivial_zero_R_1(x, ls_primes, max_n=10, num_trivial_zero=10):
     return sum(R(pow(x, -2*m), ls_primes=ls_primes, max_n=max_n) for m in range(1, num_trivial_zero+1))
@@ -183,6 +185,52 @@ def plot_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_zero=10,
     plt.show()
 
 
+def create_gif_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_zero=10, max_n=None):
+    """Generate the Chebyshev psi function plot for animation looping over zeros."""
+    fig, ax = plt.subplots(figsize=(10, 6))
+    num_zeros_list = list(range(0, len(ls_rz_zero)))
+
+    prime_count_values = [primesieve.count_primes(i) for i in range(1, max_x + 1)]
+    max_y_value = prime_count_values[-1]
+
+    if max_n is None:
+        # max_n = int(log(max_x) / log(2)) + 1
+        max_n = int(log(max_x) - log(2)) + 2
+
+    ls_primes = list(primesieve.primes(max_n + 1))
+
+    def update(frame):
+        ax.clear()
+        num_zeros = num_zeros_list[frame]
+        current_zeros = ls_rz_zero[:num_zeros]
+
+        ax.step(range(1, max_x + 1),
+                prime_count_values,
+                where='post',
+                label=r'$\pi(x)$', color='red')
+
+        x_range = np.linspace(2, max_x, max_x*20)
+        ax.plot(x_range,
+                [prime_counting_rz_approximation(i, current_zeros, ls_primes=ls_primes, max_n=max_n,
+                                                 num_trivial_zero=num_trivial_zero)
+                 for i in x_range],
+                label=rf'$\pi_0(x)$ with {len(current_zeros)} non-trivial zeros and {num_trivial_zero} trivial zeros' +
+                      f' and {max_n} terms of mobius inversion',
+                color='blue')
+
+        ax.set_xticks(np.arange(1, max_x + 1, step=max(max_x // 10, 1)))
+        ax.set_ylim(top=int(max_y_value)+1)
+
+        ax.set_xlabel('x')
+        ax.set_ylabel(r'$\pi(x)$')
+        ax.set_title('$\pi(x)$ Prime Counting Function')
+        ax.legend()
+
+    num_frames = len(num_zeros_list)
+    ani = animation.FuncAnimation(fig, update, frames=num_frames, repeat=True)
+    ani.save('prime_counting_rz_approximation_loop.gif', writer='pillow')
+
+
 if __name__ == '__main__':
 
     ls_zeros = []
@@ -190,4 +238,6 @@ if __name__ == '__main__':
         for line in f:
             ls_zeros.append(float(line.strip().split(' ')[1]))
 
-    plot_prime_counting_rz_approximation(max_x=100, max_n=None, ls_rz_zero=ls_zeros[:100], num_trivial_zero='all')
+    # plot_prime_counting_rz_approximation(max_x=100, max_n=None, ls_rz_zero=ls_zeros[:100], num_trivial_zero='all')
+    # plot_prime_counting_rz_approximation(max_x=100, max_n=None, ls_rz_zero=ls_zeros[:0], num_trivial_zero='all')
+    create_gif_prime_counting_rz_approximation(max_x=100, max_n=None, ls_rz_zero=ls_zeros[:100], num_trivial_zero='all')
