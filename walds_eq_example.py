@@ -1,4 +1,4 @@
-import random
+import numpy as np
 import math
 from tqdm import tqdm
 
@@ -41,25 +41,55 @@ Since S_N = S_{N-1} + Y_N:
 -------------------------------------------------------------------------------
 """
 
-NUM_SIMULATIONS = 100_000
-theoretical = 2 - math.e / 2
+# ─── Efficiency notes ────────────────────────────────────────────────────────
+# 1. Running sum: track a scalar `total_yn` instead of re-summing a list
+#    each iteration (O(1) update vs O(n) rescan).
+# 2. Numpy batch sampling: pre-draw a chunk of randoms at once. numpy's RNG
+#    is implemented in C and amortises Python overhead across many draws,
+#    far faster than calling random.uniform() in a tight Python loop.
+# 3. np.cumsum + argmax: find the crossing index inside a batch with a single
+#    vectorised scan rather than a Python while-loop.
+# ─────────────────────────────────────────────────────────────────────────────
 
-last_values = []
+NUM_SIMULATIONS = 1_000_000
+BATCH = 20  # pre-draw this many uniforms per simulation; E[N]=e≈2.7
+# so 20 is almost always enough with very rare top-ups
+
+theoretical = 2 - math.e / 2
+rng = np.random.default_rng()
+
+total_yn = 0.0  # running sum of y_N values (O(1) update each iteration)
 running_avg = 0.0
 
 pbar = tqdm(range(NUM_SIMULATIONS), desc="Simulating")
 
 for i in pbar:
-    total = 0.0
-    while True:
-        y = random.uniform(0, 1)
-        total += y
-        if total >= 1:
-            last_values.append(y)
-            break
+    # Draw a batch of candidates at once (vectorised C call)
+    draws = rng.random(BATCH)
+    cumsum = np.cumsum(draws)
 
-    running_avg = sum(last_values) / (i + 1)
-    pbar.set_postfix(avg=f"{running_avg:.7f}", theory=f"{theoretical:.7f}", diff=f"{abs(running_avg - theoretical):.7f}")
+    # Find the first index where the cumulative sum crosses 1
+    idx = np.argmax(cumsum >= 1.0)
+
+    if cumsum[idx] < 1.0:
+        # Rare: entire batch didn't cross — top up one draw at a time
+        total = cumsum[-1]
+        while True:
+            y = rng.random()
+            total += y
+            if total >= 1.0:
+                draws = np.append(draws, y)
+                idx = len(draws) - 1
+                break
+
+    total_yn += draws[idx]
+    running_avg = total_yn / (i + 1)
+
+    pbar.set_postfix(
+        avg=f"{running_avg:.7f}",
+        theory=f"{theoretical:.7f}",
+        diff=f"{abs(running_avg - theoretical):.7f}",
+    )
 
 pbar.close()
 
@@ -67,5 +97,3 @@ print()
 print(f"Simulated average of y_N : {running_avg:.7f}")
 print(f"Theoretical (2 - e/2)    : {theoretical:.7f}")
 print(f"Difference               : {abs(running_avg - theoretical):.7f}")
-
-#
