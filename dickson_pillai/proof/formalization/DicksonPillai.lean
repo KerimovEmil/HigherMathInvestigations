@@ -13,8 +13,11 @@ framework surrounding the Dickson–Pillai condition in Waring's problem:
    formally demonstrating why the remainder sequence does not consist of $S$-units for $S = \{2, 3, 5, \infty\}$.
 4. **Diophantine Exponent Barrier:** Formalization of the theoretical exponent gap between the
    known effective record ($c \approx 0.999999$) and the Dickson–Pillai barrier ($c \le \log_2(4/3) \approx 0.415037$).
-5. **Certified Computational Verification:** Exhaustively verifies that the Dickson–Pillai condition
-   holds for all $1 \le k \le 1000$ using Lean's certified kernel arithmetic without axioms.
+5. **Universal Soundness Theorem:** Formally proves by induction that `verifyRange n = true` implies
+   `∀ k, 1 ≤ k → k ≤ n → DicksonPillaiCondition k`.
+6. **Certified Universal Verification:**
+   - Proves `∀ k, 1 ≤ k ≤ 100 → DicksonPillaiCondition k` via kernel reduction (`decide`).
+   - Proves `∀ k, 1 ≤ k ≤ 1000 → DicksonPillaiCondition k` via compiled evaluation (`native_decide`).
 
 Author: Emil Kerimov
 -/
@@ -93,9 +96,9 @@ theorem numerical_gap_size :
   beukersRecordScaled - targetBarrierScaled = 584962 := by
   rfl
 
-/-! ## 5. Certified Finite Verification for $1 \le k \le 1000$ (Axiom-Free) -/
+/-! ## 5. Certified Universal Finite Verification -/
 
-/-- Certified check that the Dickson–Pillai condition holds for all $k$ in range $[1, n]$ -/
+/-- Certified boolean range checker for $1 \le k \le n$ -/
 def verifyRange (n : Nat) : Bool :=
   match n with
   | 0 => true
@@ -105,27 +108,50 @@ def verifyRange (n : Nat) : Bool :=
     else
       false
 
-/-- Exhaustive base verification up to $k = 10$: all satisfy the condition -/
-theorem verify_dp_up_to_10 : verifyRange 10 = true := by
-  decide
+/-- Soundness Theorem: If `verifyRange n = true`, then `DicksonPillaiCondition k`
+    holds for every integer $1 \le k \le n$. -/
+theorem verifyRange_sound (n : Nat) (h : verifyRange n = true) :
+    ∀ k, 1 ≤ k → k ≤ n → DicksonPillaiCondition k := by
+  induction n with
+  | zero =>
+    intro k hk1 hk2
+    omega
+  | succ n ih =>
+    intro k hk1 hk2
+    unfold verifyRange at h
+    split at h
+    · rename_i hc
+      if heq : k = n + 1 then
+        subst heq
+        exact hc
+      else
+        have hk_le : k ≤ n := by omega
+        exact ih h k hk1 hk_le
+    · contradiction
 
-/-- Exhaustive base verification up to $k = 50$: all satisfy the condition -/
-theorem verify_dp_up_to_50 : verifyRange 50 = true := by
-  decide
-
-/-- Exhaustive base verification up to $k = 100$: all satisfy the condition -/
+/-- Certified boolean verification up to $k = 100$ via Lean kernel reduction -/
 theorem verify_dp_up_to_100 : verifyRange 100 = true := by
   decide
 
-/-- Individual verification of initial base cases $k = 1, 2, 3, 4, 5, 6, 7, 8$ -/
+/-- Universal Theorem for $k \le 100$: Fully proven in Lean kernel -/
+theorem dp_condition_all_le_100 (k : Nat) (h1 : 1 ≤ k) (h2 : k ≤ 100) :
+    DicksonPillaiCondition k :=
+  verifyRange_sound 100 verify_dp_up_to_100 k h1 h2
+
+/-- Certified boolean verification up to $k = 1000$ via compiled native execution -/
+theorem verify_dp_up_to_1000 : verifyRange 1000 = true := by
+  native_decide
+
+/-- Universal Theorem for $k \le 1000$: Fully proven in Lean 4 -/
+theorem dp_condition_all_le_1000 (k : Nat) (h1 : 1 ≤ k) (h2 : k ≤ 1000) :
+    DicksonPillaiCondition k :=
+  verifyRange_sound 1000 verify_dp_up_to_1000 k h1 h2
+
+/-- Individual verification of initial base cases $k = 1, 2, 3, 4$ -/
 theorem dp_k1 : DicksonPillaiCondition 1 := by decide
 theorem dp_k2 : DicksonPillaiCondition 2 := by decide
 theorem dp_k3 : DicksonPillaiCondition 3 := by decide
 theorem dp_k4 : DicksonPillaiCondition 4 := by decide
-theorem dp_k5 : DicksonPillaiCondition 5 := by decide
-theorem dp_k6 : DicksonPillaiCondition 6 := by decide
-theorem dp_k7 : DicksonPillaiCondition 7 := by decide
-theorem dp_k8 : DicksonPillaiCondition 8 := by decide
 
 /-- Exact formula for Waring's $g(k)$ holds unconditionally for all $k \in \{1, 2, 3, 4\}$ -/
 theorem waring_g_small_k (k : Nat) (h : k ∈ [1, 2, 3, 4]) :
@@ -136,11 +162,11 @@ theorem waring_g_small_k (k : Nat) (h : k ∈ [1, 2, 3, 4]) :
   | 3, _ => exact ⟨dp_k3, rfl⟩
   | 4, _ => exact ⟨dp_k4, rfl⟩
 
-/-! ## 6. Lean 4 Axiom Integrity Audit -/
+/-! ## 6. Axiom Integrity Audit -/
 
--- Verify that no custom axioms were introduced into the kernel:
 #print axioms r8_prime_leakage
 #print axioms theoretical_exponent_gap
-#print axioms verify_dp_up_to_100
+#print axioms verifyRange_sound
+#print axioms dp_condition_all_le_100
+#print axioms dp_condition_all_le_1000
 #print axioms waring_g_small_k
-
