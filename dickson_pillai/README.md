@@ -44,8 +44,6 @@ The condition can be rewritten in four strictly equivalent forms:
 * **Conditional Proof via the $abc$ Conjecture:** Sinnou David and Michel Waldschmidt proved that the $abc$ conjecture forces $r_k + q_k \le 2^k$ for all sufficiently large $k$.
 * **Computational Boundary:** In 1990, Kubina & Wunderlich verified that **zero exceptions** exist for all $k \le 471{,}600{,}000$.
 
----
-
 ## 4. Connections to Related Open & Closed Problems
 
 | Problem | Key Formulation | Nature | Status |
@@ -59,9 +57,22 @@ The condition can be rewritten in four strictly equivalent forms:
 
 ---
 
-## 5. Directory Structure & Research Roadmaps
+## 5. Historical Computational Verification Records
+
+| Year | Author(s) | Verified Bound $K$ | Computational Platform / Method |
+| :--- | :--- | :--- | :--- |
+| **1936** | **Leonard E. Dickson & S. S. Pillai** | $k \le 100$ | Manual calculations establishing $g(k)$ formula |
+| **1944** | **Ivan Niven** | Small $k$ extensions | Hand & desk calculator verification |
+| **1964** | **Rosemarie M. Stemmler** | $k \le 200{,}000$ | Early mainframe computer search (*Math. Comp.*, 1964) |
+| **1990** | **Jeffrey M. Kubina & Marvin C. Wunderlich** | **$k \le 471{,}600{,}000$** | Cray X-MP / Y-MP supercomputer search (*Math. Comp.*, 1990) |
+| **1990–Present** | *(OEIS A174420 & literature standard)* | **$471{,}600{,}000$** | **Current published world record** |
+
+---
+
+## 6. Directory Structure & Research Roadmaps
 
 * [`dickson_pillai.py`](./dickson_pillai.py): Python module implementing exact arbitrary-precision integer verification, table generation, and plotting routines.
+* [`verifier.cpp`](./verifier.cpp): High-performance C++ verification engine utilizing 2-adic bitwise Montgomery streaming, SHA-256 state hashing, and order-statistics tracking.
 * [`plan_pade_hypergeometric.md`](./plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms to push the effective Diophantine exponent $c$ toward $0.415$.
 * [`plan_algorithmic_verification.md`](./plan_algorithmic_verification.md): High-performance computational verification architecture using GPU/C++/FLINT bitwise streaming to push the verification frontier from $4.71 \times 10^8$ to $10^{10}+$.
 * [`plots/dickson_pillai_analysis.png`](./plots/dickson_pillai_analysis.png): Visual analysis showing the logarithmic growth of the safety margin, empirical distribution of fractional parts, and proximity to the danger envelope.

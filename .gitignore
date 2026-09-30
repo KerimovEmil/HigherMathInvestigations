@@ -6,8 +6,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# C extensions and compiled binaries
 *.so
+*.exe
+*.o
+*.obj
+*.dll
 
 # Distribution / packaging
 .Python
