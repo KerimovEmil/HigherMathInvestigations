@@ -1,4 +1,4 @@
-"""
+r"""
 phi(x) = sum_{p^n<=x} log(p) = sum_{k<=x} \Lambda(k)
 
 phi(x) = x - 1/2 ln(1-x^-2) - ln(2pi) + 4*sqrt(x)* sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
@@ -7,7 +7,22 @@ where r are the positive imaginary parts of the zeros of the riemann zeta functi
 from utils import memoize
 
 import numpy as np
-import primesieve
+try:
+    import primesieve
+    def get_primes(n):
+        return primesieve.primes(n)
+except ImportError:
+    def get_primes(n):
+        if n < 2:
+            return []
+        sieve = [True] * (n + 1)
+        sieve[0] = sieve[1] = False
+        for p in range(2, int(n**0.5) + 1):
+            if sieve[p]:
+                for i in range(p * p, n + 1, p):
+                    sieve[i] = False
+        return [p for p in range(2, n + 1) if sieve[p]]
+
 from math import log, sin, cos, pi
 
 import matplotlib.pyplot as plt
@@ -31,7 +46,7 @@ def von_mangoldt(n: int, primes_set: set[int]) -> float:
 @memoize
 def chebyshev_psi(x):
     """Compute the Chebyshev psi function up to x."""
-    primes = primesieve.primes(x)
+    primes = get_primes(x)
     primes_set = set(primes)
     psi_values = np.zeros(x + 1)
 
@@ -48,7 +63,7 @@ def plot_chebyshev_psi(x):
     plt.plot(range(x + 1), psi_values, label=r'$\psi(x)$')
     plt.xlabel('x')
     plt.ylabel(r'$\psi(x)$')
-    plt.title('Chebyshev $\psi$ Prime Counting Function')
+    plt.title(r'Chebyshev $\psi$ Prime Counting Function')
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -110,7 +125,7 @@ def plot_chebyshev_psi_rz_approximation(x, ls_rz_zero):
 
     plt.xlabel('x')
     plt.ylabel(r'$\psi(x)$')
-    plt.title('Chebyshev $\psi$ Prime Counting Function')
+    plt.title(r'Chebyshev $\psi$ Prime Counting Function')
     plt.legend()
 
     plt.show()
@@ -145,7 +160,7 @@ def create_gif_chebyshev_psi_rz_approximation(x, ls_rz_zero):
 
         ax.set_xlabel('x')
         ax.set_ylabel(r'$\psi(x)$')
-        ax.set_title('Chebyshev $\psi$ Prime Counting Function')
+        ax.set_title(r'Chebyshev $\psi$ Prime Counting Function')
         ax.legend()
 
     num_frames = len(num_zeros_list)

@@ -1,0 +1,17 @@
+name: higher-math
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - pip
+  - pip:
+      - primesieve>=2.3.0
+      - numpy>=1.24.0
+      - scipy>=1.10.0
+      - matplotlib>=3.7.0
+      - requests>=2.31.0
+      - sympy>=1.12
+      - mpmath>=1.3.0
+      - pandas>=2.0.0
+      - tqdm>=4.65.0

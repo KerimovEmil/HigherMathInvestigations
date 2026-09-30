@@ -51,8 +51,8 @@ class SquareMatrix(Matrix):
 
         # special case for 2x2 matrix:
         if self.size == 2:
-            return [[self[1][1] / determinant, -1 * self[0][1] / determinant],
-                    [-1 * self[1][0] / determinant, self[0][0] / determinant]]
+            return self.matrix_factory([[self[1][1] / determinant, -1 * self[0][1] / determinant],
+                                        [-1 * self[1][0] / determinant, self[0][0] / determinant]])
 
         # find matrix of minors
         ls_minors = self.zero_ls_entries(row_dim=self.size, col_dim=self.size)
@@ -78,26 +78,56 @@ class SquareMatrix(Matrix):
             L: <Matrix> m x m lower triangular matrix
             U: <Matrix> m x m upper triangular matrix
         """
-
-        # L and U are both square matrices
         L = self.identity(self.len_row).ls_entries
-        U = [[0] * self.len_row for x in range(self.len_row)]
-        A = self.matrix_factory(copy.deepcopy(self.ls_entries))
-
-        # Need to pivot first for stability
-        for i in range(self.len_row):
-            minor_col_i = list(map(abs, A[i:self.len_row, i]))
-            max_row_index = minor_col_i.index(max(minor_col_i)) + i
-            A[i], A[max_row_index] = A[max_row_index], A[i]
+        U = [[0] * self.len_row for _ in range(self.len_row)]
+        A = self.ls_entries
 
         for i in range(self.len_row):
-            for j in range(i, self.len_row):  # update matrix after pivoting
+            for j in range(i, self.len_row):
                 sum_upper = sum([L[i][k] * U[k][j] for k in range(i)])
-                sum_lower = sum([L[j][k] * U[k][i] for k in range(i)])
                 U[i][j] = A[i][j] - sum_upper
+            for j in range(i + 1, self.len_row):
+                sum_lower = sum([L[j][k] * U[k][i] for k in range(i)])
                 L[j][i] = (A[j][i] - sum_lower) / U[i][i] if U[i][i] != 0 else 0
 
         return self.matrix_factory(L), self.matrix_factory(U)
+
+    def PLU_decomposition(self):
+        """
+        Returns the Permutation, Lower, Upper decomposition (P, L, U) such that P * A = L * U.
+        P: <Matrix> permutation matrix
+        L: <Matrix> unit lower triangular matrix
+        U: <Matrix> upper triangular matrix
+        """
+        n = self.len_row
+        A = copy.deepcopy(self.ls_entries)
+        L = self.identity(n).ls_entries
+        P = self.identity(n).ls_entries
+
+        for i in range(n):
+            # Pivot selection
+            max_row = i
+            max_val = abs(A[i][i])
+            for k in range(i + 1, n):
+                if abs(A[k][i]) > max_val:
+                    max_val = abs(A[k][i])
+                    max_row = k
+
+            if max_row != i:
+                # Swap rows in A, P, and previous columns of L
+                A[i], A[max_row] = A[max_row], A[i]
+                P[i], P[max_row] = P[max_row], P[i]
+                for k in range(i):
+                    L[i][k], L[max_row][k] = L[max_row][k], L[i][k]
+
+            for j in range(i + 1, n):
+                if A[i][i] != 0:
+                    L[j][i] = A[j][i] / A[i][i]
+                    for k in range(i, n):
+                        A[j][k] -= L[j][i] * A[i][k]
+
+        U = A
+        return self.matrix_factory(P), self.matrix_factory(L), self.matrix_factory(U)
 
     def get_toeplitz_matrix_berkowitz(self, a_0_0, row_vector, col_vector, principal, col_num):
         """

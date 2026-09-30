@@ -30,13 +30,13 @@ def plotting(ls_x, ls_y):
 
     fig, ax = plt.subplots(figsize=(8, 6))  # Set the plot size
 
-    ax.scatter(ls_x, ls_y, s=2, label='$h_n + e^{h_n}\ln(h_n) - \sigma(n)$')  # Use LaTeX to render label
+    ax.scatter(ls_x, ls_y, s=2, label=r'$h_n + e^{h_n}\ln(h_n) - \sigma(n)$')  # Use LaTeX to render label
 
     ax.axhline(y=0, color='black', linestyle='--')  # Add horizontal line at y=0
 
     ax.set_title("Robin's inequality", fontsize=20, fontweight='bold')  # Set the plot title
     ax.set_xlabel("$n$", fontsize=16)  # Use LaTeX to render axis label
-    ax.set_ylabel("$h_n + e^{h_n}\ln(h_n) - \sigma(n)$", fontsize=16)  # Use LaTeX to render axis label
+    ax.set_ylabel(r"$h_n + e^{h_n}\ln(h_n) - \sigma(n)$", fontsize=16)  # Use LaTeX to render axis label
     ax.tick_params(axis='both', which='major', labelsize=12)  # Set the font size of the tick labels
 
     ax.legend(fontsize=12)  # Add the legend

@@ -1,6 +1,10 @@
 """Prime factorization"""
 import unittest
-from primesieve import primes
+
+try:
+    from primesieve import primes
+except ImportError:
+    primes = None
 
 
 def primes_of_n(n, ls_prime=None):
@@ -16,6 +20,8 @@ def primes_of_n(n, ls_prime=None):
 
     """
     factors = {}
+    if n < 0:
+        n = abs(n)
 
     if ls_prime is None:
         i = 2
@@ -25,10 +31,13 @@ def primes_of_n(n, ls_prime=None):
             return j
     else:
         i = 0
-        p = ls_prime[i]
+        p = ls_prime[i] if len(ls_prime) > 0 else 2
 
         def next_prime(j):
-            return ls_prime[j]
+            if j < len(ls_prime):
+                return ls_prime[j]
+            # Fallback to incrementing if beyond provided list
+            return ls_prime[-1] + (j - len(ls_prime) + 1)
 
     while p * p <= n:
         while n % p == 0:
@@ -58,4 +67,13 @@ class TestPrimes(unittest.TestCase):
         self.cases(function=primes_of_n)
 
     def test_prime_given(self):
-        self.cases(function=lambda n: primes_of_n(n, ls_prime=primes(100)))
+        if primes is not None:
+            self.cases(function=lambda n: primes_of_n(n, ls_prime=primes(100)))
+        else:
+            # Fallback test with small prime list
+            small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+            self.cases(function=lambda n: primes_of_n(n, ls_prime=small_primes))
+
+
+if __name__ == '__main__':
+    unittest.main()
