@@ -3,10 +3,10 @@
 ## 1. Executive Summary & Core Objective
 
 The **Dickson–Pillai condition** for Waring's problem requires that for all $k \ge 1$:
-$$1 - \left\{ \left(\frac{3}{2}\right)^k \right\} \ge \left(\frac{3}{4}\right)^k \left(\frac{1 - (2/3)^k}{1 - 2^{-k}}\right) \approx (3/4)^k$$
+$$1 - \{(3/2)^k\} \ge (3/4)^k \cdot \left(\frac{1 - (2/3)^k}{1 - 2^{-k}}\right) \approx (3/4)^k$$
 
 Effective Diophantine approximation (via Baker's theory and classical Padé approximants) produces lower bounds of the form:
-$$\left\| \left(\frac{3}{2}\right)^k \right\| > 2^{-c k} \quad \text{for all } k \ge K_0$$
+$$\|(3/2)^k\| > 2^{-c k} \quad \text{for all } k \ge K_0$$
 
 * **Current Effective Record:** $c \approx 0.999999$ (Beukers 1981, Dubickas 2006).
 * **Target Exponent:** $c \le \log_2(4/3) \approx 0.415037$.

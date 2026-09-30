@@ -6,11 +6,11 @@ In 1770, Edward Waring posed his celebrated problem: does there exist for every 
 
 In 1936, **Leonard Eugene Dickson** and **Subbayya Sivasankaranarayana Pillai** independently established that the exact value of $g(k)$ for all natural numbers is given by:
 
-$$g(k) = 2^k + \left\lfloor \left(\frac{3}{2}\right)^k \right\rfloor - 2$$
+$$g(k) = 2^k + \lfloor (3/2)^k \rfloor - 2$$
 
 provided that the following condition holds for all $k \ge 1$:
 
-$$2^k \left\{ \left(\frac{3}{2}\right)^k \right\} + \left\lfloor \left(\frac{3}{2}\right)^k \right\rfloor \le 2^k$$
+$$2^k \cdot \{(3/2)^k\} + \lfloor (3/2)^k \rfloor \le 2^k$$
 
 This inequality is known as the **Dickson–Pillai Condition**.
 
@@ -18,7 +18,7 @@ This inequality is known as the **Dickson–Pillai Condition**.
 
 ## 2. Algebraic Formulations & Equivalences
 
-Let $3^k = q_k 2^k + r_k$, with quotient $q_k = \lfloor (3/2)^k \rfloor$ and remainder $r_k = 3^k \bmod 2^k$ ($0 \le r_k < 2^k$). The fractional part is $\{(3/2)^k\} = \frac{r_k}{2^k}$.
+Let $3^k = q_k 2^k + r_k$, with quotient $q_k = \lfloor (3/2)^k \rfloor$ and remainder $r_k = 3^k \bmod 2^k$ ($0 \le r_k < 2^k$). The fractional part is $\{(3/2)^k\} = r_k / 2^k$.
 
 The condition can be rewritten in four strictly equivalent forms:
 
@@ -26,13 +26,13 @@ The condition can be rewritten in four strictly equivalent forms:
    $$r_k + q_k \le 2^k$$
 
 2. **Floor Form:**
-   $$\left\lfloor \left(\frac{3}{2}\right)^k \right\rfloor \ge \frac{3^k - 2^k}{2^k - 1} = \left(\frac{3}{2}\right)^k \frac{1 - (2/3)^k}{1 - 2^{-k}}$$
+   $$\lfloor (3/2)^k \rfloor \ge \frac{3^k - 2^k}{2^k - 1} = (3/2)^k \cdot \frac{1 - (2/3)^k}{1 - 2^{-k}}$$
 
 3. **Ceiling Form:**
-   $$\left\lceil \left(\frac{3}{2}\right)^k \right\rceil \ge \frac{3^k - 1}{2^k - 1}$$
+   $$\lceil (3/2)^k \rceil \ge \frac{3^k - 1}{2^k - 1}$$
 
 4. **Fractional Part / Diophantine Distance Form:**
-   $$1 - \left\{ \left(\frac{3}{2}\right)^k \right\} \ge \frac{3^k - 2^k}{4^k - 2^k} = \left(\frac{3}{4}\right)^k \left(\frac{1 - (2/3)^k}{1 - 2^{-k}}\right) \approx \left(\frac{3}{4}\right)^k$$
+   $$1 - \{(3/2)^k\} \ge \frac{3^k - 2^k}{4^k - 2^k} = (3/4)^k \cdot \left(\frac{1 - (2/3)^k}{1 - 2^{-k}}\right) \approx (3/4)^k$$
 
 ---
 
@@ -54,7 +54,7 @@ The condition can be rewritten in four strictly equivalent forms:
 | **Mahler's $3/2$ Problem** | $\{\xi (3/2)^n\} < 1/2$ | Bounded fractional parts ($Z$-numbers) | **Open** |
 | **Equidistribution of $(3/2)^n$** | $\{(3/2)^n\} \bmod 1$ | Dense / uniform distribution | **Open** |
 | **Collatz ($3x+1$) Problem** | $3^k \bmod 2^k$ | 2-adic bit dynamics | **Open** |
-| **Pisot–Vijayaraghavan Numbers** | $\Vert \alpha^n \Vert \to 0$ | Exponential convergence to integers | **Solved** (Pisot 1938) |
+| **Pisot–Vijayaraghavan Numbers** | $\operatorname{dist}(\alpha^n, \mathbb{Z}) \to 0$ | Exponential convergence to integers | **Solved** (Pisot 1938) |
 | **$abc$ Conjecture** | $C \le K(\varepsilon) \operatorname{rad}(ABC)^{1+\varepsilon}$ | Prime power additive constraints | **Open** |
 
 ---
