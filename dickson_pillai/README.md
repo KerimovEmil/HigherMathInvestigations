@@ -84,5 +84,7 @@ The condition can be rewritten in four strictly equivalent forms:
   * [`checkpoints_5M.json`](./verification_records/checkpoints_5M.json): JSON ledger for $k = 1$ to $5{,}000{,}000$.
   * [`summary_5M.md`](./verification_records/summary_5M.md): Markdown summary and checkpoint audit trail.
 * [`plan_pade_hypergeometric.md`](./plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms to push the effective Diophantine exponent $c$ toward $0.415$.
-* [`plan_algorithmic_verification.md`](./plan_algorithmic_verification.md): High-performance computational verification architecture using GPU/C++/FLINT bitwise streaming to push the verification frontier from $4.71 \times 10^8$ to $10^{10}+$.
+* [`pade_hypergeometric.py`](./pade_hypergeometric.py): Arbitrary-precision Padé approximant engine for quadratic, cubic, and quintic hypergeometric forms with Hata $p$-adic sieve and effective exponent analysis.
+* [`plan_algorithmic_verification.md`](./plan_algorithmic_verification.md): High-performance computational verification architecture using multi-core/GPU bitwise streaming to push the verification frontier from $4.71 \times 10^8$ to $10^{10}+$.
 * [`plots/dickson_pillai_analysis.png`](./plots/dickson_pillai_analysis.png): Visual analysis showing the logarithmic growth of the safety margin, empirical distribution of fractional parts, and proximity to the danger envelope.
+* [`plots/pade_exponent_analysis.png`](./plots/pade_exponent_analysis.png): Padé error decay $|R_n|$, height growth $\ln|B_n|$ / $\ln D_n$, and trajectory of effective exponent $c_n$ against the target barrier $c \le 0.415037$.
