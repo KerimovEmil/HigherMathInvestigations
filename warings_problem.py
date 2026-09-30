@@ -1,132 +1,295 @@
-# if 2^k frac( (3/2)^k ) + floor( (3/2)^k ) <= 2^k for all k then
-# g(k) = 2^k + floor( (3/2)^k ) - 2
+"""
+Waring's Problem Sub-Problem Conjecture:
+Condition: 2^k * {(3/2)^k} + floor((3/2)^k) <= 2^k for all k >= 1.
 
-# this eq has been proved valid for k < 471,600,000
+If this condition holds for all k >= 1, then the minimum number of k-th powers
+needed to represent every positive integer has the exact closed form:
+    g(k) = 2^k + floor((3/2)^k) - 2
 
-# frac((3/2)^k) = (3/2)^k - floor((3/2)^k)
+This module provides:
+1. Complete Algebraic Formulations and Equivalence Proofs
+2. Analysis of Proof Attempts & Obstructions (Diophantine approximation, Mahler, Baker's method)
+3. Probabilistic & Heuristic Justification (Borel-Cantelli)
+4. Fast Exact-Integer Numerical Verification and Gap Analysis
+5. Visualization tools (Matplotlib)
+"""
 
-# 2^k ((3/2)^k - floor( (3/2)^k )) + floor( (3/2)^k ) <= 2^k
-# 3^k + (1-2^k) * floor( (3/2)^k )) <= 2^k
-# 3^k - 2^k <= (2^k - 1) * floor( (3/2)^k ))
-
-# (3/2)^k - 1 <= (1 - 2^-k) * floor( (3/2)^k ))
-
-# floor( (3/2)^k )) => ((3/2)^k - 1) / (1 - 2^-k)
-# floor( (3/2)^k )) / (3/2)^k => (1- (2/3)^k) / (1 - 2^-k)
-# floor((3/2)^k )) / (3/2)^k => (6^k- 4^k) / (6^k - 3^k)
-
-
-import matplotlib.pyplot as plt
 import math
-
-# m = 100
-
-# # plotting the difference
-# # diff = [int((3/2)**i) * (2/3)**i - (6**i - 4**i) / (6**i - 3**i) for i in range(2, m)]
-# diff = [int(math.pow(1.5, i)) * math.pow(2/3, i)
-#         -
-#         (1 - math.pow(2/3, i)) / (1 - math.pow(2, -i))
-#         for i in range(2, m)]
-# plt.plot(diff)
-# plt.yscale('log')
-# plt.ylabel('Inequality greater than 0')
-# plt.xlabel('k')
-# plt.legend(['floor((3/2)^k )) / (3/2)^k - (6^k- 4^k) / (6^k - 3^k)'])
-
-# # plotting the floor((3/2)^k )) / (3/2)^k
-# floor_ratio = [1 - int((3/2)**i) / (3/2)**i for i in range(2, m)]
-# plt.plot(floor_ratio)
-# plt.yscale('log')
-# plt.ylabel('Behaviour of floor((3/2)^k )) / (3/2)^k')
-# plt.xlabel('k')
-# plt.legend(['1 - floor((3/2)^k )) / (3/2)^k '])
-
-# # plotting the (6^k- 4^k) / (6^k - 3^k)
-# power_ratio = [1 - (6**i - 4**i) / (6**i - 3**i) for i in range(2, m)]
-# plt.plot(power_ratio)
-# plt.yscale('log')
-# plt.ylabel('Behaviour of (6^k- 4^k) / (6^k - 3^k)')
-# plt.xlabel('k')
-# plt.legend(['1 - (6^k- 4^k) / (6^k - 3^k)'])
-
-from decimal import *
-
-# floor((3/2)^k )) / (3/2)^k => (6^k- 4^k) / (6^k - 3^k)
-
-# floor((3/2)^k) * (2^k -1) / (3^k - 2^k) - 1 > 0
-# floor((3/2)^k) * (2^k -1) / (3^k - 2^k) > 1
-# floor((3/2)^k) * (2^k - 1) > (3^k - 2^k)
+from typing import List, Dict, Tuple, Optional
+import matplotlib.pyplot as plt
 
 
-def diffa(a, b):
-    m = 1750
-    getcontext().prec = 1000
-    a_dec = Decimal(a)
-    b_dec = Decimal(b)
-    return [int(a_dec**i / b_dec**i) * (b_dec**i - 1) / (a_dec**i - b_dec**i) - 1 for i in range(2, m)]
+# ==============================================================================
+# 1. ALGEBRAIC REFORMULATION & EQUIVALENCES
+# ==============================================================================
+"""
+Let 3^k = q_k * 2^k + r_k, where:
+    q_k = floor((3/2)^k) = floor(3^k / 2^k)
+    r_k = 3^k mod 2^k (with 0 <= r_k < 2^k)
+    {(3/2)^k} = (3/2)^k - floor((3/2)^k) = r_k / 2^k
+
+Condition:
+    2^k * {(3/2)^k} + floor((3/2)^k) <= 2^k
+    <==> 2^k * (r_k / 2^k) + q_k <= 2^k
+    <==> r_k + q_k <= 2^k
+
+Equivalent Form 1 (Floor Bound):
+    Since r_k = 3^k - q_k * 2^k:
+    (3^k - q_k * 2^k) + q_k <= 2^k
+    <==> 3^k - 2^k <= q_k * (2^k - 1)
+    <==> q_k >= (3^k - 2^k) / (2^k - 1)
+    <==> floor((3/2)^k) >= (3^k - 2^k) / (2^k - 1)
+
+Equivalent Form 2 (Ceiling Form):
+    Since (3^k - 2^k)/(2^k - 1) = (3^k - 1)/(2^k - 1) - 1:
+    q_k + 1 >= (3^k - 1) / (2^k - 1)
+    <==> ceil((3/2)^k) >= (3^k - 1) / (2^k - 1)
+
+Equivalent Form 3 (Fractional Part / Diophantine Distance Bound):
+    Substitute q_k = (3/2)^k - theta_k where theta_k = {(3/2)^k} in [0, 1):
+    (3/2)^k - theta_k >= (3^k - 2^k) / (2^k - 1)
+    <==> theta_k <= (3/2)^k - (3^k - 2^k) / (2^k - 1)
+    <==> theta_k <= (4^k - 3^k) / (4^k - 2^k)
+    <==> 1 - theta_k >= (3^k - 2^k) / (4^k - 2^k)
+    As k -> inf, (3^k - 2^k)/(4^k - 2^k) = (3/4)^k * (1 - (2/3)^k) / (1 - 2^-k) ~ (3/4)^k.
+
+    Conclusion: The conjecture states that {(3/2)^k} cannot approach 1 faster than (3/4)^k.
+    Specifically:
+        1 - {(3/2)^k} >= (3/4)^k * (1 - (2/3)^k) / (1 - 2^-k)
+"""
 
 
-def ls_diff(up_to=1750, precision=1000):
+# ==============================================================================
+# 2. THEORETICAL ANALYSIS & PROOF ATTEMPTS
+# ==============================================================================
+"""
+WHY IS THIS SO HARD TO PROVE?
+
+1. Modular & Algebraic Obstruction:
+   - In base 2, 3^k mod 2^k is the low k bits of 3^k.
+   - The map x -> 3x mod 2^k is an automorphism of (Z/2^k Z)* with maximal order 2^(k-2).
+   - The sequence r_k = 3^k mod 2^k behaves like a pseudo-random bit sequence (closely related
+     to the 2-adic dynamics of the 3x+1 Collatz map).
+   - Purely elementary algebraic identities cannot forbid r_k from being close to 2^k - 1.
+
+2. Mahler's Theorem (1957) - Qualitative Resolution:
+   - Kurt Mahler used Ridout's p-adic generalization of the Thue-Siegel-Roth theorem.
+   - For any rational u/v > 1 and any epsilon > 0, the distance of (u/v)^k to the nearest integer
+     ||(u/v)^k|| satisfies ||(u/v)^k|| > e^(-epsilon * k) for all sufficiently large k.
+   - Taking u/v = 3/2 and epsilon = ln(4/3) - delta ~ 0.28768 - delta > 0:
+     Mahler showed that 1 - {(3/2)^k} > (3/4)^k holds for all k >= K_0.
+   - Thus, there are at most FINITELY MANY EXCEPTIONAL k!
+   - OBSTRUCTION: Roth's theorem is INEFFECTIVE (it relies on proof by contradiction).
+     It does not provide an explicit value for K_0.
+
+3. Baker's Theory of Linear Forms in Logarithms - Effective Bounds:
+   - Baker's method is effective (provides explicit K_0).
+   - However, the best known effective lower bounds for ||(3/2)^k|| are of the form 2^(-c * k)
+     with c near 1 (e.g. Beukers 1981, Dubickas, Bugeaud).
+   - To prove our conjecture, we need c <= log2(4/3) ~ 0.415037.
+   - The gap between 0.415 and the current effective limit ~0.999 is a major open problem in
+     transcendence theory / Diophantine approximation.
+
+4. Probabilistic / Heuristic (Borel-Cantelli):
+   - If {(3/2)^k} is uniformly distributed in [0, 1), the probability of a violation at step k
+     is P(theta_k > 1 - (3/4)^k) ~ (3/4)^k.
+   - The expected number of violations for k >= K is sum_{k=K}^inf (3/4)^k = 4 * (3/4)^K.
+   - For K = 471,600,000 (verified by Kubina & Wunderlich):
+     The expected number of remaining exceptions is < 4 * (0.75)^(4.716 * 10^8) = 10^(-58,800,000).
+   - It is mathematically almost certain that 0 exceptions exist.
+"""
+
+
+# ==============================================================================
+# 3. EXACT INTEGER VERIFICATION & METRICS
+# ==============================================================================
+
+def check_waring_subproblem(max_k: int = 5000, verbose: bool = True) -> Dict[str, object]:
     """
-    Return list of
-    floor((3/2)^k) * (2^k -1) / (3^k - 2^k) - 1
-    for k from 1 to up_to
+    Perform exact integer verification of r_k + q_k <= 2^k for all 1 <= k <= max_k.
+    No floating point precision loss occurs.
 
-    If this is always positive then floor((3/2)^k) * (2^k - 1) > (3^k - 2^k)
+    Returns summary dictionary with statistics and worst-case margins.
     """
-    getcontext().prec = precision
-    dec_3 = Decimal(3)
-    dec_2 = Decimal(2)
-    return [int(dec_3**i / dec_2**i) * (dec_2**i - 1) / (dec_3**i - dec_2**i) - 1 for i in range(2, up_to)]
+    min_safety_ratio = float('inf')
+    worst_k = 1
+    violations = []
+    
+    # Track statistics
+    min_margin_k = 1
+    min_margin_val = 0
+
+    for k in range(1, max_k + 1):
+        pow3 = 3**k
+        pow2 = 1 << k
+        q, r = divmod(pow3, pow2)
+        
+        # Check condition: r + q <= 2^k
+        diff = pow2 - (r + q)
+        if diff < 0:
+            violations.append((k, q, r, diff))
+            continue
+        
+        # For k >= 2, evaluate safety ratio: (1 - frac) / danger_bound
+        # 1 - frac = (2^k - r) / 2^k
+        # danger_bound = (3^k - 2^k) / (4^k - 2^k) = (3^k - 2^k) / (2^k * (2^k - 1))
+        # safety_ratio = (2^k - r) * (2^k - 1) / (3^k - 2^k)
+        if k >= 2:
+            # num = (pow2 - r) * (pow2 - 1) ~ 4^k * (1 - frac)
+            # den = pow3 - pow2 ~ 3^k
+            # For large k, ratio ~ (1 - frac) * (4/3)^k grows exponentially.
+            # We track log2(safety_ratio) to prevent float overflow.
+            num = (pow2 - r) * (pow2 - 1)
+            den = pow3 - pow2
+            
+            # Compute log2(safety_ratio) = log2(num) - log2(den)
+            # num.bit_length() gives high precision log2 estimate
+            log2_num = num.bit_length() - 1 + math.log2(num >> max(0, num.bit_length() - 53)) - (min(53, num.bit_length()) - 1) if num > 0 else float('-inf')
+            log2_den = den.bit_length() - 1 + math.log2(den >> max(0, den.bit_length() - 53)) - (min(53, den.bit_length()) - 1)
+            log2_ratio = log2_num - log2_den
+            
+            # For small k (k < 50), compute exact float ratio
+            if k < 50:
+                ratio_float = num / den
+                if ratio_float < min_safety_ratio:
+                    min_safety_ratio = ratio_float
+                    worst_k = k
+            elif log2_ratio < 0:
+                # Violation! ratio < 1.0
+                min_safety_ratio = math.pow(2, log2_ratio)
+                worst_k = k
+
+    is_valid = (len(violations) == 0)
+    
+    if verbose:
+        print(f"=== Waring's Sub-problem Verification (k = 1 to {max_k}) ===")
+        print(f"All k valid: {is_valid}")
+        print(f"Violations found: {len(violations)}")
+        print(f"Tightest safety ratio: {min_safety_ratio:.6f} (at k = {worst_k})")
+        print("Note: safety_ratio >= 1.0 means condition is strictly satisfied.")
+        print("============================================================\n")
+        
+    return {
+        "is_valid": is_valid,
+        "max_k": max_k,
+        "violations": violations,
+        "tightest_safety_ratio": min_safety_ratio,
+        "worst_k": worst_k
+    }
 
 
-def ls_diff_2(up_to=1750, precision=1000):
+def get_detailed_table(start_k: int = 2, end_k: int = 25) -> List[Dict[str, object]]:
     """
-    Return list of
-    floor((3/2)^k )) / (3/2)^k - (1- (2/3)^k) / (1 - 2^-k)
-    for k from 1 to up_to
-
-    If this is always positive then floor((3/2)^k )) / (3/2)^k => (6^k- 4^k) / (6^k - 3^k)
+    Generate exact values of q, r, diff, fractional part, and threshold for small k.
     """
-    getcontext().prec = precision
-    dec_2 = Decimal(2)
-    dec_1_5 = Decimal(1.5)
-    return [int(dec_1_5**i) / (dec_1_5**i) - (1 - dec_1_5**(-i)) / (1 - dec_2**(-i)) for i in range(2, up_to)]
+    rows = []
+    for k in range(start_k, end_k + 1):
+        pow3 = 3**k
+        pow2 = 1 << k
+        q, r = divmod(pow3, pow2)
+        diff = pow2 - (r + q)
+        frac = r / pow2
+        danger_threshold = (pow3 - pow2) / (pow2 * (pow2 - 1))
+        safety_ratio = ((pow2 - r) * (pow2 - 1)) / (pow3 - pow2)
+        
+        rows.append({
+            "k": k,
+            "q": q,
+            "r": r,
+            "diff": diff,
+            "frac": frac,
+            "danger_threshold": 1.0 - danger_threshold,
+            "safety_ratio": safety_ratio
+        })
+    return rows
 
 
-def ls_log_diff(up_to=1750, precision=1000):
+# ==============================================================================
+# 4. PLOTTING & VISUALIZATION
+# ==============================================================================
+
+def plot_waring_analysis(max_k: int = 500, save_path: Optional[str] = None):
     """
-    Return list of
-    log( floor((3/2)^k) ) + log((2^k -1)) - log(3^k - 2^k) > 0
-    for k from 1 to up_to
-
-    If this is always positive then floor((3/2)^k) * (2^k - 1) > (3^k - 2^k)
+    Plot 3 analytical views:
+    1. Log2 of Safety Ratio log2((1 - { (3/2)^k }) / (danger threshold)) over k.
+    2. The fractional part { (3/2)^k } vs the danger boundary 1 - (3/4)^k.
+    3. Distribution (histogram) of { (3/2)^k } modulo 1 demonstrating uniform spread.
     """
-    getcontext().prec = precision
-    dec_3 = Decimal(3)
-    dec_2 = Decimal(2)
-    dec_1_5 = dec_3 / dec_2
+    k_vals = list(range(2, max_k + 1))
+    log2_ratios = []
+    fracs = []
+    danger_bounds = []
+    
+    for k in k_vals:
+        pow3 = 3**k
+        pow2 = 1 << k
+        q, r = divmod(pow3, pow2)
+        
+        frac = (r >> max(0, k - 53)) / (pow2 >> max(0, k - 53))
+        fracs.append(frac)
+        
+        # Danger bound for fractional part: 1 - (3/4)^k
+        danger = 1.0 - math.pow(0.75, k)
+        danger_bounds.append(danger)
+        
+        # Safety ratio log2
+        num = (pow2 - r) * (pow2 - 1)
+        den = pow3 - pow2
+        log2_num = num.bit_length() - 1 + math.log2(num >> max(0, num.bit_length() - 53)) - (min(53, num.bit_length()) - 1) if num > 0 else 0
+        log2_den = den.bit_length() - 1 + math.log2(den >> max(0, den.bit_length() - 53)) - (min(53, den.bit_length()) - 1)
+        log2_ratios.append(log2_num - log2_den)
 
-    ls_out = []
+    fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+    
+    # Plot 1: Safety Ratio in log2 scale
+    axes[0].plot(k_vals, log2_ratios, color='darkblue', lw=1.2)
+    axes[0].axhline(y=0.0, color='red', linestyle='--', label='Violation Threshold (log2 Ratio = 0)')
+    axes[0].set_title(r"$\log_2(\text{Safety Ratio}) \sim k \log_2(4/3)$")
+    axes[0].set_xlabel("k")
+    axes[0].set_ylabel(r"$\log_2(\text{Safety Ratio})$")
+    axes[0].grid(True, which="both", ls="--", alpha=0.5)
+    axes[0].legend()
+    
+    # Plot 2: Fractional Part vs Danger Curve
+    axes[1].scatter(k_vals, fracs, s=6, color='purple', alpha=0.6, label=r"$\{(3/2)^k\}$")
+    axes[1].plot(k_vals, danger_bounds, color='red', lw=1.5, label=r"Danger Zone: $1 - (3/4)^k$")
+    axes[1].set_title(r"$\{(3/2)^k\}$ vs Danger Curve")
+    axes[1].set_xlabel("k")
+    axes[1].set_ylabel("Value in [0, 1)")
+    axes[1].grid(True, ls="--", alpha=0.5)
+    axes[1].legend()
 
-    # math.log(dec_3 ** k - dec_2 ** k)
-    # math.log(dec_2 ** k * (dec_1.4 ** k - 1))
-    # k * math.log(dec_2) + math.log((dec_1.5 ** k - 1))
+    # Plot 3: Histogram of Fractional Parts
+    axes[2].hist(fracs, bins=30, color='teal', edgecolor='black', alpha=0.7, density=True)
+    axes[2].axhline(y=1.0, color='crimson', linestyle='--', label='Uniform Dist PDF')
+    axes[2].set_title(r"Empirical Distribution of $\{(3/2)^k\}$ mod 1")
+    axes[2].set_xlabel(r"$\{(3/2)^k\}$")
+    axes[2].set_ylabel("Density")
+    axes[2].grid(True, ls="--", alpha=0.5)
+    axes[2].legend()
+    
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=300)
+        print(f"Plot saved to {save_path}")
+    else:
+        plt.show()
 
-    for k in range(2, up_to):
-        three_halfs_raised = dec_1_5**k
-        n = math.log(int(three_halfs_raised) * (dec_2**k - 1)/(three_halfs_raised - 1)) - k * math.log(dec_2)
-        ls_out.append(n)
-    return ls_out
 
-
-diff = ls_diff(1800, precision=1000)
-# diff = ls_diff_2(2000, precision=1000)
-plt.plot(diff)
-plt.yscale('log')
-plt.legend(['floor((3/2)^k) * (2^k -1) / (3^k - 2^k) - 1'])
-
-# diff = ls_log_diff(1750, precision=1000)
-# plt.plot(diff)
-# plt.yscale('log')
-# plt.legend(['log(floor((3/2)^k) * (2^k -1) / (3^k - 2^k))'])
+if __name__ == "__main__":
+    # 1. Run exact check up to k = 5000
+    check_waring_subproblem(max_k=5000, verbose=True)
+    
+    # 2. Print small k exact breakdown
+    print("--- Detailed Values for k = 2 to 15 ---")
+    table = get_detailed_table(2, 15)
+    print(f"{'k':>2} | {'q':>8} | {'r':>8} | {'diff = 2^k - (r+q)':>18} | {'{(3/2)^k}':>10} | {'Danger Bound':>12} | {'Safety Ratio':>12}")
+    print("-" * 85)
+    for row in table:
+        print(f"{row['k']:2d} | {row['q']:8d} | {row['r']:8d} | {row['diff']:18d} | {row['frac']:10.4f} | {row['danger_threshold']:12.4f} | {row['safety_ratio']:12.4f}")
+    
+    # 3. Plot overview (saving to plots/ if exists, or show)
+    try:
+        plot_waring_analysis(max_k=500, save_path="plots/warings_problem_analysis.png")
+    except Exception as e:
+        print(f"Plotting note: {e}")
