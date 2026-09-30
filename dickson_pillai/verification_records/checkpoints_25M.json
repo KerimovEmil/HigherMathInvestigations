@@ -1,9 +1,9 @@
 {
-  "max_k": 10000000,
+  "max_k": 25000000,
   "threads": 20,
   "total_violations": 0,
-  "total_time_seconds": 170.376,
-  "throughput_k_per_sec": 58693,
+  "total_time_seconds": 1710.35,
+  "throughput_k_per_sec": 14616,
   "top_near_misses": [
     {"k": 2, "fractional_part": 0.25, "safety_ratio": 1.33333, "log2_safety_ratio": 0.415037},
     {"k": 3, "fractional_part": 0.375, "safety_ratio": 1.48148, "log2_safety_ratio": 0.567041},

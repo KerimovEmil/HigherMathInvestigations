@@ -77,6 +77,8 @@ The condition can be rewritten in four strictly equivalent forms:
 * [`verifier.cpp`](./verifier.cpp): Single-threaded baseline C++ verification engine with rolling state hashing and order statistics.
 * [`parallel_verifier.cpp`](./parallel_verifier.cpp): High-performance 20-thread parallel C++ engine utilizing dynamic work-stealing, fast binary exponentiation chunk initializers, and unrolled 128-bit limb arithmetic.
 * [`verification_records/`](./verification_records/): Verification logs, structured JSON checkpoint ledgers, and audit summaries.
+  * [`checkpoints_25M.json`](./verification_records/checkpoints_25M.json): Parallel 20-thread JSON ledger for $k = 1$ to $25{,}000{,}000$.
+  * [`summary_25M.md`](./verification_records/summary_25M.md): Markdown summary and order statistics for 25M steps.
   * [`checkpoints_10M.json`](./verification_records/checkpoints_10M.json): Parallel 20-thread JSON ledger for $k = 1$ to $10{,}000{,}000$.
   * [`summary_10M.md`](./verification_records/summary_10M.md): Markdown summary and order statistics for 10M steps.
   * [`checkpoints_5M.json`](./verification_records/checkpoints_5M.json): JSON ledger for $k = 1$ to $5{,}000{,}000$.
