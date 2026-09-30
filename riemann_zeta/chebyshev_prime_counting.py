@@ -1,4 +1,4 @@
-"""
+r"""
 phi(x) = sum_{p^n<=x} log(p) = sum_{k<=x} \Lambda(k)
 
 phi(x) = x - 1/2 ln(1-x^-2) - ln(2pi) + 4*sqrt(x)* sum_{r} (cos(rln(x)) + 2r*sin(rln(x))) /(1+4r^2)
@@ -48,7 +48,7 @@ def plot_chebyshev_psi(x):
     plt.plot(range(x + 1), psi_values, label=r'$\psi(x)$')
     plt.xlabel('x')
     plt.ylabel(r'$\psi(x)$')
-    plt.title('Chebyshev $\psi$ Prime Counting Function')
+    plt.title(r'Chebyshev $\psi$ Prime Counting Function')
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -110,7 +110,7 @@ def plot_chebyshev_psi_rz_approximation(x, ls_rz_zero):
 
     plt.xlabel('x')
     plt.ylabel(r'$\psi(x)$')
-    plt.title('Chebyshev $\psi$ Prime Counting Function')
+    plt.title(r'Chebyshev $\psi$ Prime Counting Function')
     plt.legend()
 
     plt.show()
@@ -145,7 +145,7 @@ def create_gif_chebyshev_psi_rz_approximation(x, ls_rz_zero):
 
         ax.set_xlabel('x')
         ax.set_ylabel(r'$\psi(x)$')
-        ax.set_title('Chebyshev $\psi$ Prime Counting Function')
+        ax.set_title(r'Chebyshev $\psi$ Prime Counting Function')
         ax.legend()
 
     num_frames = len(num_zeros_list)

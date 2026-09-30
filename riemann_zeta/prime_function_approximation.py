@@ -223,7 +223,7 @@ def create_gif_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_ze
 
         ax.set_xlabel('x')
         ax.set_ylabel(r'$\pi(x)$')
-        ax.set_title('$\pi(x)$ Prime Counting Function')
+        ax.set_title(r'$\pi(x)$ Prime Counting Function')
         ax.legend()
 
     num_frames = len(num_zeros_list)

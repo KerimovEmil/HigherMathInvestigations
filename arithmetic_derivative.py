@@ -1,3 +1,4 @@
+from fractions import Fraction
 import matplotlib.pyplot as plt
 
 
@@ -24,7 +25,7 @@ def primes_of_n(n):
 def log_arithmetic_derivative(n):
     """Computes the log-arithmetic derivative of a number. Currently only works for integers. """
     dc_factorization = primes_of_n(n)
-    return sum([m/p for p, m in dc_factorization.items()])
+    return sum([Fraction(m, p) for p, m in dc_factorization.items()])
 
 
 def arithmetic_derivative(n):
@@ -36,9 +37,8 @@ if __name__ == '__main__':
     assert arithmetic_derivative(5*11*11*11) == 3146
 
     x = 100000
-    # plt.plot(range(x), [arithmetic_derivative(x) for x in range(x)])
-    plt.plot(range(x), [arithmetic_derivative(x) for x in range(x)], 'ro')
+    # plt.plot(range(x), [arithmetic_derivative(i) for i in range(x)])
+    plt.plot(range(x), [arithmetic_derivative(i) for i in range(x)], 'ro')
     plt.ylabel("Arithmetic Derivative")
     plt.xlabel("Number")
     plt.show()
-

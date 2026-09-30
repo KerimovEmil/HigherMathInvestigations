@@ -16,6 +16,8 @@ def primes_of_n(n, ls_prime=None):
 
     """
     factors = {}
+    if n < 0:
+        n = abs(n)
 
     if ls_prime is None:
         i = 2
@@ -59,3 +61,7 @@ class TestPrimes(unittest.TestCase):
 
     def test_prime_given(self):
         self.cases(function=lambda n: primes_of_n(n, ls_prime=primes(100)))
+
+
+if __name__ == '__main__':
+    unittest.main()
