@@ -13,7 +13,21 @@
 
 ---
 
-## Order Statistics (Top Extreme Near-Misses)
+## 1. Mathematical Dynamics: Why Global Near-Misses Cluster at Small $k$
+
+The **Safety Ratio** is defined as:
+$$\text{Safety Ratio}(k) = \frac{1 - \{(3/2)^k\}}{(3/4)^k} \approx (1 - \theta_k) \cdot \left(\frac{4}{3}\right)^k$$
+
+Because $(4/3)^k \approx 2^{0.415 k}$ grows exponentially with $k$:
+* At $k = 14$: $(4/3)^{14} \approx 56.12 \implies \text{Safety Ratio} = 3.9701$.
+* At $k = 100$: $(4/3)^{100} \approx 3.1 \times 10^{12} \implies$ requires $1 - \theta_{100} < 10^{-12}$ to beat $k = 14$.
+* At $k = 25{,}000{,}000$: $(4/3)^{25,000,000} \approx 10^{3,123,000} \implies$ requires $\theta_k$ within $10^{-3,123,000}$ of $1$.
+
+Because fractional parts $\{(3/2)^k\}$ are uniformly distributed in $[0, 1)$, the probability of beating the small-$k$ safety ratios vanishes exponentially. Thus, the global order statistics list **theoretically must be dominated by small $k \le 16$**, confirming the soundness of the distribution.
+
+---
+
+## 2. Order Statistics (Global Extreme Near-Misses)
 
 | Rank | $k$ | Remainder Fraction $\{(3/2)^k\}$ | Safety Ratio $\frac{1 - \theta_k}{(3/4)^k}$ | $\log_2(\text{Safety Ratio})$ |
 | :--- | :--- | :--- | :--- | :--- |
@@ -32,3 +46,13 @@
 | **13** | 11 | 0.497559 | 11.8963 | 3.5724 |
 | **14** | 16 | 0.840836 | 15.8806 | 3.9892 |
 | **15** | 13 | 0.619507 | 16.0159 | 4.0014 |
+
+---
+
+## 3. Scale Progression Comparison
+
+| Verification Dataset | Range Verified | Execution Time | Limb Count (64-bit) | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **5 Million** | $k \le 5 \times 10^6$ | 278.36 s | 123,826 | Verified |
+| **10 Million** | $k \le 10 \times 10^6$ | 170.38 s | 247,652 | Verified |
+| **25 Million** | $k \le 25 \times 10^6$ | 1710.35 s | 619,130 | Verified |

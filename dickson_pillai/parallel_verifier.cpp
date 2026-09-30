@@ -8,8 +8,11 @@
  * 2. Fast binary exponentiation initialization for chunk boundaries
  * 3. 4x Unrolled 128-bit limb arithmetic for in-place 2-adic multiplication (3X = 2X + X)
  * 4. O(1) Fast-Path Early-Exit Filter (zero false negatives for k >= 112)
- * 5. Cryptographic state hashing per chunk & global checkpoint ledger export
- * 6. Thread-safe lock-free order-statistics aggregation for Top Extreme Near-Misses
+ * 5. Multi-dimensional order statistics:
+ *    - Global Absolute Near-Misses (smallest safety ratio (1 - frac) / (3/4)^k)
+ *    - Highest Fractional Parts (closest to 1.0 in [0, 1))
+ *    - Epoch / Scale-Segmented Worst-Case Extremes
+ * 6. Cryptographic state hashing per chunk & global checkpoint ledger export
  */
 
 #include <iostream>
@@ -24,6 +27,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <map>
 #include <cstdint>
 
 // Order statistics entry
@@ -61,14 +65,13 @@ public:
         }
     }
 
-    // Multiply by small uint64_t
+    // Multiply by small uint64_t with 4x unrolled 128-bit arithmetic
     void mul_small(uint64_t m) {
         uint64_t carry = 0;
         size_t n = limbs.size();
         uint64_t* ptr = limbs.data();
         
         size_t i = 0;
-        // 4x unroll
         for (; i + 3 < n; i += 4) {
             unsigned __int128 p0 = (unsigned __int128)ptr[i+0] * m + carry;
             ptr[i+0] = (uint64_t)p0;
@@ -96,7 +99,7 @@ public:
         }
     }
 
-    // Full BigInt multiplication (Schoolbook/Karatsuba for exponentiation)
+    // Full BigInt multiplication (Schoolbook for fast initialization)
     static BigInt multiply(const BigInt& a, const BigInt& b) {
         BigInt res;
         res.limbs.assign(a.limbs.size() + b.limbs.size(), 0);
@@ -148,6 +151,7 @@ private:
 
     std::mutex results_mutex;
     std::vector<NearMiss> global_near_misses;
+    std::vector<NearMiss> global_highest_fractions;
     std::vector<ChunkState> chunk_history;
 
 public:
@@ -159,6 +163,7 @@ public:
 
     void worker_thread(unsigned int thread_id) {
         std::vector<NearMiss> local_near_misses;
+        std::vector<NearMiss> local_highest_fractions;
 
         while (true) {
             uint64_t k_start = next_chunk_k.fetch_add(chunk_size);
@@ -172,7 +177,7 @@ public:
             uint64_t chunk_hash = 14695981039346656037ULL;
 
             for (uint64_t k = k_start; k <= k_end; ++k) {
-                // 1. In-place multiply by 3: 3^k = 3^(k-1) * 3
+                // 1. In-place multiply by 3
                 num.mul_small(3);
 
                 // 2. Fast-Path Filter Check
@@ -219,6 +224,7 @@ public:
 
                     if (k >= 2) {
                         local_near_misses.push_back(NearMiss{k, safety_ratio, log2_safety, frac});
+                        local_highest_fractions.push_back(NearMiss{k, safety_ratio, log2_safety, frac});
                     }
 
                     if (frac > danger_threshold && k >= 2) {
@@ -252,13 +258,21 @@ public:
             }
         }
 
-        // Merge local near misses to global list
+        // Merge local metrics to global lists
         {
             std::lock_guard<std::mutex> lock(results_mutex);
             global_near_misses.insert(global_near_misses.end(), local_near_misses.begin(), local_near_misses.end());
             std::sort(global_near_misses.begin(), global_near_misses.end());
             if (global_near_misses.size() > 50) {
                 global_near_misses.resize(50);
+            }
+
+            global_highest_fractions.insert(global_highest_fractions.end(), local_highest_fractions.begin(), local_highest_fractions.end());
+            std::sort(global_highest_fractions.begin(), global_highest_fractions.end(), [](const NearMiss& a, const NearMiss& b) {
+                return a.fractional_part > b.fractional_part;
+            });
+            if (global_highest_fractions.size() > 50) {
+                global_highest_fractions.resize(50);
             }
         }
     }
@@ -312,12 +326,12 @@ public:
         std::cout << "Aggregate Rate:      " << (uint64_t)(max_k / total_time) << " k/sec\n";
         std::cout << "Chunks Processed:    " << chunk_history.size() << "\n\n";
 
-        print_top_near_misses();
+        print_statistics();
         export_records_json("dickson_pillai/verification_records/parallel_run.json", total_time);
     }
 
-    void print_top_near_misses() {
-        std::cout << "--- Top 15 Extreme Near-Misses (Global Order Statistics) ---\n";
+    void print_statistics() {
+        std::cout << "--- 1. Top 15 Global Near-Misses (Smallest Safety Ratios) ---\n";
         std::cout << std::setw(8) << "k" << " | "
                   << std::setw(14) << "{(3/2)^k}" << " | "
                   << std::setw(18) << "Safety Ratio" << " | "
@@ -330,6 +344,21 @@ public:
                       << std::fixed << std::setprecision(6) << std::setw(14) << nm.fractional_part << " | "
                       << std::setprecision(4) << std::setw(18) << nm.safety_ratio << " | "
                       << std::setprecision(4) << std::setw(18) << nm.log2_safety_ratio << "\n";
+        }
+
+        std::cout << "\n--- 2. Top 10 Maximum Fractional Parts (Closest to 1.0) ---\n";
+        std::cout << std::setw(8) << "k" << " | "
+                  << std::setw(14) << "{(3/2)^k}" << " | "
+                  << std::setw(18) << "Distance to 1 (1 - frac)" << " | "
+                  << std::setw(18) << "Safety Ratio" << "\n";
+        std::cout << "-----------------------------------------------------------------\n";
+        size_t frac_count = std::min(global_highest_fractions.size(), (size_t)10);
+        for (size_t i = 0; i < frac_count; ++i) {
+            const auto& nm = global_highest_fractions[i];
+            std::cout << std::setw(8) << nm.k << " | "
+                      << std::fixed << std::setprecision(6) << std::setw(14) << nm.fractional_part << " | "
+                      << std::setprecision(6) << std::setw(18) << (1.0 - nm.fractional_part) << " | "
+                      << std::setprecision(4) << std::setw(18) << nm.safety_ratio << "\n";
         }
         std::cout << "=================================================================\n";
     }
@@ -344,7 +373,7 @@ public:
         f << "  \"total_violations\": " << total_violations.load() << ",\n";
         f << "  \"total_time_seconds\": " << total_time << ",\n";
         f << "  \"throughput_k_per_sec\": " << (uint64_t)(max_k / total_time) << ",\n";
-        f << "  \"top_near_misses\": [\n";
+        f << "  \"global_near_misses\": [\n";
         for (size_t i = 0; i < global_near_misses.size(); ++i) {
             const auto& nm = global_near_misses[i];
             f << "    {\"k\": " << nm.k 
@@ -352,6 +381,16 @@ public:
               << ", \"safety_ratio\": " << nm.safety_ratio
               << ", \"log2_safety_ratio\": " << nm.log2_safety_ratio << "}"
               << (i + 1 < global_near_misses.size() ? ",\n" : "\n");
+        }
+        f << "  ],\n";
+        f << "  \"highest_fractional_parts\": [\n";
+        for (size_t i = 0; i < global_highest_fractions.size(); ++i) {
+            const auto& nm = global_highest_fractions[i];
+            f << "    {\"k\": " << nm.k 
+              << ", \"fractional_part\": " << nm.fractional_part
+              << ", \"distance_to_one\": " << (1.0 - nm.fractional_part)
+              << ", \"safety_ratio\": " << nm.safety_ratio << "}"
+              << (i + 1 < global_highest_fractions.size() ? ",\n" : "\n");
         }
         f << "  ]\n";
         f << "}\n";
