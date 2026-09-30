@@ -79,7 +79,7 @@ To satisfy the highest peer-review standards of computational number theory (e.g
 
 ### 4.2 Cryptographic Checkpoint Chains (Proof of Continuous Work)
 * Maintain a deterministic rolling SHA-256 state hash chain:
-  $$H_k = \operatorname{SHA-256}\left(H_{k-1} \parallel k \parallel (r_k \bmod 2^{64}) \parallel (q_k \bmod 2^{64}) \parallel \Delta(k)\right)$$
+  $$H_k = \text{SHA-256}\left(H_{k-1} \parallel k \parallel (r_k \bmod 2^{64}) \parallel (q_k \bmod 2^{64}) \parallel \Delta(k)\right)$$
 * Checkpoints $H_k$ are exported every $10^7$ steps into a public ledger.
 * **Spot-Check Auditing:** Any auditor can verify an arbitrary sub-interval $[K_1, K_2]$ locally in a few seconds, verifying that starting from $H_{K_1}$ produces the exact published hash $H_{K_2}$.
 

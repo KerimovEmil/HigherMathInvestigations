@@ -54,8 +54,8 @@ The condition can be rewritten in four strictly equivalent forms:
 | **Mahler's $3/2$ Problem** | $\{\xi (3/2)^n\} < 1/2$ | Bounded fractional parts ($Z$-numbers) | **Open** |
 | **Equidistribution of $(3/2)^n$** | $\{(3/2)^n\} \bmod 1$ | Dense / uniform distribution | **Open** |
 | **Collatz ($3x+1$) Problem** | $3^k \bmod 2^k$ | 2-adic bit dynamics | **Open** |
-| **Pisot–Vijayaraghavan Numbers** | $\operatorname{dist}(\alpha^n, \mathbb{Z}) \to 0$ | Exponential convergence to integers | **Solved** (Pisot 1938) |
-| **$abc$ Conjecture** | $C \le K(\varepsilon) \operatorname{rad}(ABC)^{1+\varepsilon}$ | Prime power additive constraints | **Open** |
+| **Pisot–Vijayaraghavan Numbers** | $\mathrm{dist}(\alpha^n, \mathbb{Z}) \to 0$ | Exponential convergence to integers | **Solved** (Pisot 1938) |
+| **$abc$ Conjecture** | $C \le K(\varepsilon) \mathrm{rad}(ABC)^{1+\varepsilon}$ | Prime power additive constraints | **Open** |
 
 ---
 

@@ -40,7 +40,7 @@ $$Q_n(z) = {}_2F_1\left(-n, -n - \nu; -2n; z\right)$$
    * Coefficient growth: $|Q_n(1/9)| \sim (\mu_1)^n$ where $\mu_1 = (3 + 2\sqrt{2})^2 \approx 33.9705$.
    * Error decay: $|R_n(1/9)| \sim (\mu_2)^n$ where $\mu_2 = (3 - 2\sqrt{2})^2 \approx 0.029437$.
 4. **Denominator Growth Analysis:**
-   * Let $D_n = \operatorname{lcm}(1, 2, \dots, 2n)$. By the Prime Number Theorem, $D_n \sim e^{2n} \approx 7.389^n$.
+   * Let $D_n = \mathrm{lcm}(1, 2, \dots, 2n)$. By the Prime Number Theorem, $D_n \sim e^{2n} \approx 7.389^n$.
    * The effective exponent is governed by:
      $$c = \frac{\ln \mu_1 + \ln D_n}{\ln(1/\mu_2) - \ln D_n} \approx \frac{3.5255 + 2.0000}{3.5255 - 2.0000} \approx 0.999999$$
 
@@ -61,7 +61,7 @@ $$Q_n(z) = {}_2F_1\left(-n, -n - \nu; -2n; z\right)$$
 
 ### Stage 3: Arithmetic Pruning of Common Factors (Denominator Optimization)
 1. **$p$-Adic Valuation of Hypergeometric Coefficients:**
-   * The theoretical upper bound $D_n = \operatorname{lcm}(1, \dots, 2n) \sim e^{2n}$ is overly pessimistic because prime powers divide large subsets of binomial coefficients.
+   * The theoretical upper bound $D_n = \mathrm{lcm}(1, \dots, 2n) \sim e^{2n}$ is overly pessimistic because prime powers divide large subsets of binomial coefficients.
    * Compute the **Hata–Rukhadze arithmetic factor**:
      $$\Phi = \lim_{n \to \infty} \frac{1}{n} \sum_{p \le 2n} v_p(G_n) \ln p$$
    * Replacing $e^{2n}$ with $e^{(2 - \Phi)n}$ reduces denominator penalty.
