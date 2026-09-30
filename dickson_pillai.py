@@ -148,15 +148,40 @@ WHY IS THE DICKSON-PILLAI CONDITION HARD TO PROVE?
    - OBSTRUCTION: Roth's theorem is INEFFECTIVE (it relies on proof by contradiction).
      It does not provide an explicit value for K_0.
 
-3. Baker's Theory of Linear Forms in Logarithms - Effective Bounds:
+3. The Conditional Proof via the abc Conjecture (Sinnou David & Michel Waldschmidt):
+   - Consider the additive triple:
+         A = r_k = 3^k - q_k * 2^k,   B = q_k * 2^k,   C = 3^k
+     where gcd(A, B, C) = 1 and A + B = C.
+   - The radical of ABC is:
+         rad(ABC) = rad(r_k * q_k * 2^k * 3^k) <= 2 * 3 * rad(q_k) * rad(r_k) <= 6 * q_k * r_k
+   - If a violation occurs, i.e., r_k + q_k > 2^k:
+     Then r_k > 2^k - q_k, and since q_k ~ (3/2)^k, we have:
+         rad(ABC) <= 6 * (3/2)^k * 2^k = 6 * 3^k = 6 * C
+   - Under the abc Conjecture (C <= K(eps) * rad(ABC)^(1+eps)):
+     By analyzing the prime factors and exponents of B = q_k * 2^k, Sinnou David (late 1990s)
+     proved that the abc conjecture forces the Dickson–Pillai condition r_k + q_k <= 2^k
+     to hold for all sufficiently large k.
+
+4. Baker's Theory of Linear Forms in Logarithms - Effective Bounds:
    - Baker's method is effective (provides explicit K_0).
    - However, the best known effective lower bounds for ||(3/2)^k|| are of the form 2^(-c * k)
      with c near 1 (e.g. Beukers 1981, Dubickas, Bugeaud).
-   - To prove our conjecture, we need c <= log2(4/3) ~ 0.415037.
+   - To prove our conjecture unconditionally, we need c <= log2(4/3) ~ 0.415037.
    - The gap between 0.415 and the current effective limit ~0.999 is a major open problem in
      transcendence theory / Diophantine approximation.
 
-4. Probabilistic / Heuristic (Borel-Cantelli):
+5. Critical Analysis of Recent Elementary Proof Claims (e.g. arXiv:2508.17950):
+   - Recent preprints occasionally claim short elementary proofs by analyzing the continuous
+     extensions F_2(x) = 2^x {(3/2)^x} + floor((3/2)^x).
+   - For instance, arXiv:2508.17950v1 (2025) considers R_j = (3^j - 1)/(2^j - 1) and correctly
+     bounds (3/2)^j < R_j < (3/2)^j + 1.
+   - However, it commits a fatal algebraic fallacy by claiming:
+         n + 1 <= floor(R_j) ==> n + 1 <= floor((3/2)^j)   [ERROR: dropped the +1!]
+   - Retaining the correct bound floor(R_j) <= floor((3/2)^j) + 1 yields floor((3/2)^j) + 1 <= n + 1 <= floor((3/2)^j) + 1,
+     which simply means n = floor((3/2)^j)—no contradiction exists.
+   - Conclusion: Elementary algebraic bounding alone cannot resolve the pseudo-random bit behavior of 3^k mod 2^k.
+
+6. Probabilistic / Heuristic (Borel-Cantelli):
    - If {(3/2)^k} is uniformly distributed in [0, 1), the probability of a violation at step k
      is P(theta_k > 1 - (3/4)^k) ~ (3/4)^k.
    - The expected number of violations for k >= K is sum_{k=K}^inf (3/4)^k = 4 * (3/4)^K.
