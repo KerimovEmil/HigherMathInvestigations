@@ -2,27 +2,9 @@
 References: http://ism.uqam.ca/~ism/pdf/Hutama-scientific%20report.pdf
 """
 
-try:
-    import primesieve
-    def get_primes(n):
-        return list(primesieve.primes(n))
-    def count_primes(n):
-        return primesieve.count_primes(n)
-except ImportError:
-    def get_primes(n):
-        if n < 2:
-            return []
-        sieve = [True] * (n + 1)
-        sieve[0] = sieve[1] = False
-        for p in range(2, int(n**0.5) + 1):
-            if sieve[p]:
-                for i in range(p * p, n + 1, p):
-                    sieve[i] = False
-        return [p for p in range(2, n + 1) if sieve[p]]
-
-    def count_primes(n):
-        return len(get_primes(n))
-
+import numpy as np
+import matplotlib.pyplot as plt
+import primesieve
 from math import log, sin, cos, pi, atan
 from mpmath import li
 from utils import memoize, timeit
@@ -179,11 +161,11 @@ def plot_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_zero=10,
         max_n = int(log(max_x) - log(2)) + 2
 
     plt.step(range(1, max_x + 1),
-             [count_primes(i) for i in range(1, max_x + 1)],
+             [primesieve.count_primes(i) for i in range(1, max_x + 1)],
              where='post',
              label=r'$\pi(x)$', color='red')
 
-    ls_primes = list(get_primes(max_n + 1))
+    ls_primes = list(primesieve.primes(max_n + 1))
     x_range = np.linspace(2, max_x, max_x*20)
     plt.plot(x_range,
              [prime_counting_rz_approximation(i, ls_rz_zero, ls_primes=ls_primes, max_n=max_n, num_trivial_zero=num_trivial_zero)
@@ -208,14 +190,14 @@ def create_gif_prime_counting_rz_approximation(max_x, ls_rz_zero, num_trivial_ze
     fig, ax = plt.subplots(figsize=(10, 6))
     num_zeros_list = list(range(0, len(ls_rz_zero)))
 
-    prime_count_values = [count_primes(i) for i in range(1, max_x + 1)]
+    prime_count_values = [primesieve.count_primes(i) for i in range(1, max_x + 1)]
     max_y_value = prime_count_values[-1]
 
     if max_n is None:
         # max_n = int(log(max_x) / log(2)) + 1
         max_n = int(log(max_x) - log(2)) + 2
 
-    ls_primes = list(get_primes(max_n + 1))
+    ls_primes = list(primesieve.primes(max_n + 1))
 
     def update(frame):
         ax.clear()
