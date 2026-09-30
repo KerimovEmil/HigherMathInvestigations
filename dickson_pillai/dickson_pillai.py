@@ -370,8 +370,12 @@ if __name__ == "__main__":
     for row in table:
         print(f"{row['k']:2d} | {row['q']:8d} | {row['r']:8d} | {row['diff']:18d} | {row['frac']:10.4f} | {row['danger_threshold']:12.4f} | {row['safety_ratio']:12.4f}")
     
-    # 3. Plot overview (saving to plots/ if exists, or show)
+    # 3. Plot overview (saving to plots/ directory)
     try:
-        plot_dickson_pillai_analysis(max_k=500, save_path="plots/dickson_pillai_analysis.png")
+        import os
+        plots_dir = os.path.join(os.path.dirname(__file__), "plots")
+        os.makedirs(plots_dir, exist_ok=True)
+        plot_path = os.path.join(plots_dir, "dickson_pillai_analysis.png")
+        plot_dickson_pillai_analysis(max_k=500, save_path=plot_path)
     except Exception as e:
         print(f"Plotting note: {e}")
