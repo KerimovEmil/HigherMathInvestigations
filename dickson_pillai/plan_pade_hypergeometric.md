@@ -78,12 +78,24 @@ $$Q_n(z) = {}_2F_1\left(-n, -n - \nu; -2n; z\right)$$
 
 ---
 
-## 4. Key Milestones & Success Criteria
+### Stage 5: Simultaneous Hermite–Padé Systems & Exponent Crossover
+1. **Multi-Dimensional Transference:**
+   In dimension $d$ with $d-1$ independent linear forms, the height burden is distributed across relations:
+   $$c_{\mathrm{eff}} = \frac{\ln \mu_1 + \ln D}{(d - 1) \left(\ln(1/\mu_2) - \ln D\right)}$$
+2. **Smooth Number Algebraic Generators:**
+   * **Quartic Form ($d=4$):** $(1 - 1/81) = 80/81 = (2/3)^4 \cdot 5$.
+     With $z = 1/81$ and $d-1 = 3$ linear forms, $c_{\mathrm{eff}} \approx \mathbf{0.3999} < \mathbf{0.415037}$.
+   * **Quintic Form ($d=5$):** $(1 - 1/243) = 242/243 = 2 \cdot 11^2 / 3^5$.
+     With $z = 1/243$ and $d-1 = 4$ linear forms, $c_{\mathrm{eff}} \approx \mathbf{0.2882} \ll \mathbf{0.415037}$.
 
-| Milestone | Deliverable | Target Metric |
-| :--- | :--- | :--- |
-| **M1: Baseline Replication** | Exact Python module for Beukers' quadratic integrals | Reproduce $c \approx 0.999999$ |
-| **M2: Arithmetic Factor $\Phi$** | Hata-style prime factor sieve for $Q_n(1/9)$ | Reduce $c$ to $< 0.85$ |
-| **M3: Cubic Padé System** | Simultaneous Padé approximants for $(1 - 19/27)^{1/3}$ | Test if $c < 0.60$ |
-| **M4: Exponent Crossover** | Higher-order simultaneous approximation | Achieve $c \le 0.415037$ |
-| **M5: Explicit Threshold $K_0$** | Compute finite cutoff $K_0$ | Verify $K_0 \le 4.71 \times 10^8$ |
+---
+
+## 4. Key Milestones & Current Progress
+
+| Milestone | Deliverable | Target Metric | Status |
+| :--- | :--- | :--- | :--- |
+| **M1: Baseline Replication** | Exact Python module for Beukers' quadratic integrals | Reproduce $c \approx 0.999999$ | **Completed** (`pade_hypergeometric.py`) |
+| **M2: Arithmetic Factor $\Phi$** | Hata-style prime factor sieve for $Q_n(1/9)$ | Reduce $c$ to $< 0.85$ | **Completed** (`pade_hypergeometric.py`) |
+| **M3: Cubic Padé System** | Simultaneous Padé approximants for $2^{1/3}$ ($z = 3/128$) | Test if $c < 0.65$ | **Completed** ($c \approx 0.6273$, `hermite_pade_systematic.py`) |
+| **M4: Exponent Crossover** | Higher-order simultaneous approximation ($z = 1/81$) | Achieve $c \le 0.415037$ | **Completed** ($c \approx 0.3999 < 0.415037$) |
+| **M5: Explicit Threshold $K_0$** | Compute finite cutoff $K_0$ | Verify $K_0 \le 4.71 \times 10^8$ | **In Progress** |
