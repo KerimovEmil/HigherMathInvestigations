@@ -235,10 +235,6 @@ def check_dickson_pillai_condition(max_k: int = 5000, verbose: bool = True) -> D
     }
 
 
-# Backwards compatibility alias
-check_waring_subproblem = check_dickson_pillai_condition
-
-
 def get_detailed_table(start_k: int = 2, end_k: int = 25) -> List[Dict[str, object]]:
     """
     Generate exact values of q, r, diff, fractional part, and threshold for small k.
@@ -337,10 +333,6 @@ def plot_dickson_pillai_analysis(max_k: int = 500, save_path: Optional[str] = No
         plt.show()
 
 
-# Backwards compatibility alias
-plot_waring_analysis = plot_dickson_pillai_analysis
-
-
 if __name__ == "__main__":
     # 1. Run exact check up to k = 5000
     check_dickson_pillai_condition(max_k=5000, verbose=True)
@@ -355,6 +347,6 @@ if __name__ == "__main__":
     
     # 3. Plot overview (saving to plots/ if exists, or show)
     try:
-        plot_dickson_pillai_analysis(max_k=500, save_path="plots/warings_problem_analysis.png")
+        plot_dickson_pillai_analysis(max_k=500, save_path="plots/dickson_pillai_analysis.png")
     except Exception as e:
         print(f"Plotting note: {e}")
