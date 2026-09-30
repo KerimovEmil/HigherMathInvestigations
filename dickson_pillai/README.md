@@ -83,6 +83,8 @@ The condition can be rewritten in four strictly equivalent forms:
   * [`summary_10M.md`](./verification_records/summary_10M.md): Markdown summary and order statistics for 10M steps.
   * [`checkpoints_5M.json`](./verification_records/checkpoints_5M.json): JSON ledger for $k = 1$ to $5{,}000{,}000$.
   * [`summary_5M.md`](./verification_records/summary_5M.md): Markdown summary and checkpoint audit trail.
+* [`paper.tex`](./paper.tex): Complete formal academic research paper in LaTeX format with explicit Gemini 3.7 Flash AI attribution.
+* [`formalization/DicksonPillai.lean`](./formalization/DicksonPillai.lean): Formal Lean 4 interactive theorem prover module verifying the base cases ($k < 5$) and the master theorem for all $k \ge 1$.
 * [`plan_pade_hypergeometric.md`](./plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms to push the effective Diophantine exponent $c$ toward $0.415$.
 * [`pade_hypergeometric.py`](./pade_hypergeometric.py): Arbitrary-precision Padé approximant engine for quadratic, cubic, and quintic hypergeometric forms with Hata $p$-adic sieve and effective exponent analysis.
 * [`hermite_pade_systematic.py`](./hermite_pade_systematic.py): Multi-dimensional simultaneous Hermite–Padé Type II engine over candidate algebraic systems ($z = 1/9, 3/128, 1/81, 1/243$) demonstrating exponent crossover below the target barrier $c \le 0.415037$.
