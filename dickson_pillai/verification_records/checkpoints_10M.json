@@ -1,0 +1,29 @@
+{
+  "experiment": "Parallel Dickson-Pillai Verification",
+  "target_k": 10000000,
+  "status": "PASSED",
+  "total_violations": 0,
+  "execution_time_seconds": 170.376,
+  "average_throughput_k_per_sec": 58693,
+  "worker_threads": 20,
+  "chunks_processed": 20,
+  "chunk_size": 500000,
+  "hardware": "AMD Ryzen AI 9 365 (10 Cores, 20 Threads, Zen 5 AVX-512)",
+  "top_near_misses": [
+    { "k": 2, "fractional_part": 0.250000, "safety_ratio": 1.3333, "log2_safety_ratio": 0.4150 },
+    { "k": 3, "fractional_part": 0.375000, "safety_ratio": 1.4815, "log2_safety_ratio": 0.5670 },
+    { "k": 5, "fractional_part": 0.593750, "safety_ratio": 1.7119, "log2_safety_ratio": 0.7756 },
+    { "k": 4, "fractional_part": 0.062500, "safety_ratio": 2.9630, "log2_safety_ratio": 1.5670 },
+    { "k": 6, "fractional_part": 0.390625, "safety_ratio": 3.4239, "log2_safety_ratio": 1.7756 },
+    { "k": 8, "fractional_part": 0.628906, "safety_ratio": 3.7068, "log2_safety_ratio": 1.8902 },
+    { "k": 14, "fractional_part": 0.929260, "safety_ratio": 3.9701, "log2_safety_ratio": 1.9892 },
+    { "k": 10, "fractional_part": 0.665039, "safety_ratio": 5.9481, "log2_safety_ratio": 2.5724 },
+    { "k": 7, "fractional_part": 0.085938, "safety_ratio": 6.8477, "log2_safety_ratio": 2.7756 },
+    { "k": 9, "fractional_part": 0.443359, "safety_ratio": 7.4135, "log2_safety_ratio": 2.8902 },
+    { "k": 15, "fractional_part": 0.893890, "safety_ratio": 7.9403, "log2_safety_ratio": 2.9892 },
+    { "k": 12, "fractional_part": 0.746338, "safety_ratio": 8.0079, "log2_safety_ratio": 3.0014 },
+    { "k": 11, "fractional_part": 0.497559, "safety_ratio": 11.8963, "log2_safety_ratio": 3.5724 },
+    { "k": 16, "fractional_part": 0.840836, "safety_ratio": 15.8806, "log2_safety_ratio": 3.9892 },
+    { "k": 13, "fractional_part": 0.619507, "safety_ratio": 16.0159, "log2_safety_ratio": 4.0014 }
+  ]
+}

@@ -74,8 +74,11 @@ The condition can be rewritten in four strictly equivalent forms:
 ## 6. Directory Structure & Research Roadmaps
 
 * [`dickson_pillai.py`](./dickson_pillai.py): Python module implementing exact arbitrary-precision integer verification, table generation, and plotting routines.
-* [`verifier.cpp`](./verifier.cpp): High-performance C++ verification engine utilizing 2-adic bitwise Montgomery streaming, SHA-256 state hashing, and order-statistics tracking.
+* [`verifier.cpp`](./verifier.cpp): Single-threaded baseline C++ verification engine with rolling state hashing and order statistics.
+* [`parallel_verifier.cpp`](./parallel_verifier.cpp): High-performance 20-thread parallel C++ engine utilizing dynamic work-stealing, fast binary exponentiation chunk initializers, and unrolled 128-bit limb arithmetic.
 * [`verification_records/`](./verification_records/): Verification logs, structured JSON checkpoint ledgers, and audit summaries.
+  * [`checkpoints_10M.json`](./verification_records/checkpoints_10M.json): Parallel 20-thread JSON ledger for $k = 1$ to $10{,}000{,}000$.
+  * [`summary_10M.md`](./verification_records/summary_10M.md): Markdown summary and order statistics for 10M steps.
   * [`checkpoints_5M.json`](./verification_records/checkpoints_5M.json): JSON ledger for $k = 1$ to $5{,}000{,}000$.
   * [`summary_5M.md`](./verification_records/summary_5M.md): Markdown summary and checkpoint audit trail.
 * [`plan_pade_hypergeometric.md`](./plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms to push the effective Diophantine exponent $c$ toward $0.415$.
