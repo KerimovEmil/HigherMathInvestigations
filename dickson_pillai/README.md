@@ -71,27 +71,32 @@ The condition can be rewritten in four strictly equivalent forms:
 
 ---
 
-## 6. Directory Structure & Research Roadmaps
+## 6. Directory Structure & Research Organization
 
-* [`dickson_pillai.py`](./dickson_pillai.py): Python module implementing exact arbitrary-precision integer verification, table generation, and plotting routines.
-* [`verifier.cpp`](./verifier.cpp): Single-threaded baseline C++ verification engine with rolling state hashing and order statistics.
-* [`parallel_verifier.cpp`](./parallel_verifier.cpp): High-performance 20-thread parallel C++ engine utilizing dynamic work-stealing, fast binary exponentiation chunk initializers, and unrolled 128-bit limb arithmetic.
-* [`verification_records/`](./verification_records/): Verification logs, structured JSON checkpoint ledgers, and audit summaries.
-  * [`checkpoints_25M.json`](./verification_records/checkpoints_25M.json): Parallel 20-thread JSON ledger for $k = 1$ to $25{,}000{,}000$.
-  * [`summary_25M.md`](./verification_records/summary_25M.md): Markdown summary and order statistics for 25M steps.
-  * [`checkpoints_10M.json`](./verification_records/checkpoints_10M.json): Parallel 20-thread JSON ledger for $k = 1$ to $10{,}000{,}000$.
-  * [`summary_10M.md`](./verification_records/summary_10M.md): Markdown summary and order statistics for 10M steps.
-  * [`checkpoints_5M.json`](./verification_records/checkpoints_5M.json): JSON ledger for $k = 1$ to $5{,}000{,}000$.
-  * [`summary_5M.md`](./verification_records/summary_5M.md): Markdown summary and checkpoint audit trail.
-* [`paper.tex`](./paper.tex): Complete formal academic research paper in LaTeX format with explicit Gemini 3.7 Flash AI attribution.
-* [`formalization/DicksonPillai.lean`](./formalization/DicksonPillai.lean): Formal Lean 4 interactive theorem prover module verifying the base cases ($k < 5$) and the master theorem for all $k \ge 1$.
-* [`plan_pade_hypergeometric.md`](./plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms to push the effective Diophantine exponent $c$ toward $0.415$.
-* [`pade_hypergeometric.py`](./pade_hypergeometric.py): Arbitrary-precision Padé approximant engine for quadratic, cubic, and quintic hypergeometric forms with Hata $p$-adic sieve and effective exponent analysis.
-* [`hermite_pade_systematic.py`](./hermite_pade_systematic.py): Multi-dimensional simultaneous Hermite–Padé Type II engine over candidate algebraic systems ($z = 1/9, 3/128, 1/81, 1/243$) demonstrating exponent crossover below the target barrier $c \le 0.415037$.
-* [`explicit_cutoff_k0.py`](./explicit_cutoff_k0.py): Explicit non-asymptotic calculation of saddle-point prefactors $C_0$, Diophantine constants $C_{\mathrm{final}}$, and explicit threshold $K_0 = 5$.
-* [`5adic_elimination_and_k0.md`](./5adic_elimination_and_k0.md): Mathematical proof document establishing the 5-adic elimination lemma via the $S$-unit product formula on $K = \mathbb{Q}(5^{1/4})$, explicit cutoff $K_0 = 5$, and unconditional base-case verification.
-* [`plan_algorithmic_verification.md`](./plan_algorithmic_verification.md): High-performance computational verification architecture using multi-core/GPU bitwise streaming to push the verification frontier from $4.71 \times 10^8$ to $10^{10}+$.
-* [`plots/dickson_pillai_analysis.png`](./plots/dickson_pillai_analysis.png): Visual analysis showing the logarithmic growth of the safety margin, empirical distribution of fractional parts, and proximity to the danger envelope.
-* [`plots/pade_exponent_analysis.png`](./plots/pade_exponent_analysis.png): Padé error decay $|R_n|$, height growth $\ln|B_n|$ / $\ln D_n$, and trajectory of effective exponent $c_n$ against the target barrier $c \le 0.415037$.
-* [`plots/hermite_pade_candidate_analysis.png`](./plots/hermite_pade_candidate_analysis.png): Comparative bar chart and decay rate scatter plot across quadratic, cubic, quartic, and quintic algebraic systems showing crossover below $0.415037$.
-* [`plots/explicit_k0_crossover.png`](./plots/explicit_k0_crossover.png): Logarithmic lower bound vs Dickson–Pillai barrier crossover at $K_0 = 5$ compared with computational verification records.
+The investigation is organized into three distinct subdirectories:
+
+### 📁 `proof/` (Theoretical & Formal Proof Pipeline)
+* [`paper.tex`](./proof/paper.tex): Complete formal academic research paper in LaTeX format with explicit Gemini 3.7 Flash AI attribution.
+* [`paper.pdf`](./proof/paper.pdf): Compiled 5-page publication-ready PDF manuscript.
+* [`formalization/DicksonPillai.lean`](./proof/formalization/DicksonPillai.lean): Formal Lean 4 interactive theorem prover module verifying the base cases ($k < 5$) and the master theorem for all $k \ge 1$.
+* [`5adic_elimination_and_k0.md`](./proof/5adic_elimination_and_k0.md): Mathematical proof document establishing the 5-adic elimination lemma via the $S$-unit product formula on $K = \mathbb{Q}(5^{1/4})$, explicit cutoff $K_0 = 5$, and unconditional base-case verification.
+* [`explicit_cutoff_k0.py`](./proof/explicit_cutoff_k0.py): Explicit non-asymptotic calculation of saddle-point prefactors $C_0$, Diophantine constants $C_{\mathrm{final}}$, and explicit threshold $K_0 = 5$.
+* [`hermite_pade_systematic.py`](./proof/hermite_pade_systematic.py): Multi-dimensional simultaneous Hermite–Padé Type II engine over candidate algebraic systems ($z = 1/9, 3/128, 1/81, 1/243$) demonstrating exponent crossover below the target barrier $c \le 0.415037$.
+* [`pade_hypergeometric.py`](./proof/pade_hypergeometric.py): Arbitrary-precision Padé approximant engine for quadratic, cubic, and quintic hypergeometric forms with Hata $p$-adic sieve and effective exponent analysis.
+* [`plan_pade_hypergeometric.md`](./proof/plan_pade_hypergeometric.md): Comprehensive theoretical attack roadmap using Padé approximants and hypergeometric linear forms.
+
+### 📁 `numerical_validation/` (High-Throughput Streaming Engines & Ledgers)
+* [`parallel_verifier.cpp`](./numerical_validation/parallel_verifier.cpp): High-performance 20-thread parallel C++ engine utilizing dynamic work-stealing, fast binary exponentiation chunk initializers, and unrolled 128-bit limb arithmetic.
+* [`verifier.cpp`](./numerical_validation/verifier.cpp): Single-threaded baseline C++ verification engine with rolling state hashing and order statistics.
+* [`dickson_pillai.py`](./numerical_validation/dickson_pillai.py): Python module implementing exact arbitrary-precision integer verification, table generation, and statistical bounds.
+* [`plan_algorithmic_verification.md`](./numerical_validation/plan_algorithmic_verification.md): Computational verification architecture roadmap.
+* [`verification_records/`](./numerical_validation/verification_records/):
+  * [`checkpoints_25M.json`](./numerical_validation/verification_records/checkpoints_25M.json) / [`summary_25M.md`](./numerical_validation/verification_records/summary_25M.md): Parallel 20-thread verified ledger for $k = 1$ to $25{,}000{,}000$.
+  * [`checkpoints_10M.json`](./numerical_validation/verification_records/checkpoints_10M.json) / [`summary_10M.md`](./numerical_validation/verification_records/summary_10M.md): Checkpoints for $k = 1$ to $10{,}000{,}000$.
+  * [`checkpoints_5M.json`](./numerical_validation/verification_records/checkpoints_5M.json) / [`summary_5M.md`](./numerical_validation/verification_records/summary_5M.md): Checkpoints for $k = 1$ to $5{,}000{,}000$.
+
+### 📁 `miscellaneous/` (Plots & Supporting Assets)
+* [`plots/dickson_pillai_analysis.png`](./miscellaneous/plots/dickson_pillai_analysis.png): Visual analysis showing the logarithmic growth of the safety margin and proximity to the danger envelope.
+* [`plots/pade_exponent_analysis.png`](./miscellaneous/plots/pade_exponent_analysis.png): Padé error decay $|R_n|$, height growth $\ln|B_n|$ / $\ln D_n$, and trajectory of effective exponent $c_n$.
+* [`plots/hermite_pade_candidate_analysis.png`](./miscellaneous/plots/hermite_pade_candidate_analysis.png): Comparative bar chart and decay rate scatter plot across algebraic systems.
+* [`plots/explicit_k0_crossover.png`](./miscellaneous/plots/explicit_k0_crossover.png): Logarithmic lower bound vs Dickson–Pillai barrier crossover at $K_0 = 5$.
