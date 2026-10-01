@@ -27,7 +27,7 @@
 
 \numberwithin{equation}{section}
 
-\title[The Frey--Hellegouarch Framework for Dickson--Pillai]{On the Dickson--Pillai Condition for Waring's Problem:\\A Frey--Hellegouarch Framework, Localized Szpiro Invariants, and Mazur--Ribet Level-Lowering}
+\title[The Frey--Hellegouarch Framework for Dickson--Pillai]{On the Dickson--Pillai Condition for Waring's Problem:\\A Frey--Hellegouarch Framework, Localized Szpiro Invariants, and Inherent Obstructions}
 
 \author{Emil Kerimov}
 \email{emil.kerimov93@gmail.com}
@@ -40,9 +40,11 @@
 \begin{abstract}
 The Dickson--Pillai condition $r_k + q_k \le 2^k$ (where $3^k = q_k 2^k + r_k$) governs the universal formula $g(k) = 2^k + \lfloor(3/2)^k\rfloor - 2$ for Waring's problem across all $k \ge 6$. In this paper, we develop an arithmetic geometry framework mapping each exponent $k$ to a Frey--Hellegouarch elliptic curve $E_k : y^2 = x(x - a_k)(x + b_k)$ associated with the primitive ternary partition $a_k + b_k = c_k$ of $3^k$.
 
-We prove that any hypothetical failure $r_k + q_k > 2^k$ forces the minimal discriminant to scale as $\ln |\Delta(E_k)| \sim (2\ln 2 + 4\ln 3)k \approx 5.78074 k$ while the conductor is bounded by $\ln N(E_k) \le k \ln 3 + \ln 12 \approx 1.09861 k + 2.485$, creating a strict asymptotic lower bound on the Szpiro ratio $\sigma_{\mathrm{fail}}(k) \ge 5.26189$. We compute the full invariant spectrum for all $k \le 40$, demonstrating that the actual Szpiro ratio remains strictly bounded by $\sigma(E_k) \le 5.88$ with mean $\bar{\sigma} \approx 5.4175$. 
+We prove that any hypothetical failure $r_k + q_k > 2^k$ forces the minimal discriminant to scale as $\ln |\Delta(E_k)| \sim (2\ln 2 + 4\ln 3)k \approx 5.78074 k$ while the conductor is bounded by $\ln N(E_k) \le k \ln 3 + \ln 12 \approx 1.09861 k + 2.485$, creating a strict asymptotic lower bound on the Szpiro ratio $\sigma_{\mathrm{fail}}(k) \ge 5.26189$. We compute the full invariant spectrum for all $k \le 40$, demonstrating that the actual Szpiro ratio remains strictly bounded by $\sigma(E_k) \le 5.88$ with mean $\bar{\sigma} \approx 5.4175$.
 
-Crucially, to overcome the classical $L(1, \operatorname{Sym}^2 f_k)$ modular degree gap ($\sigma \le 12$), we introduce a **Mazur--Ribet Level-Lowering Sieve**: because $p \mid v_2(\Delta_k) = 2k$ and $p \mid v_3(\Delta_k) = 2k$ for any prime $p \mid k$, the mod-$p$ Galois representation $\rho_{E_k, p}$ is unramified at 2 and 3, lowering the modular level from $N(E_k) = 6 \operatorname{rad}(r_k q_k)$ down to $N_p = 2 \operatorname{rad}(r_k)$, completely stripping the exponential powers $3^k$ and $2^k$ from the level. We formalize the algebraic foundations and 2-torsion invariants in Lean 4 without unproven axioms.
+Furthermore, we provide an adversarial audit of potential proof mechanisms:
+(1) unconditional modular degree bounds (Hoffstein--Lockhart) yield $\ln |\Delta| \le 12 \ln N$, missing the required $\sigma < 5.26$ threshold; and
+(2) Mazur--Ribet level-lowering lowers the level only to $N_p = 2 \operatorname{rad}(r_k)$, where the dimension $\dim S_2(\Gamma_0(N_p)) \asymp 2^k / 12$ explodes exponentially because the remainder $r_k$ is not a pure power. We formalize the algebraic foundations, 2-torsion invariants, and asymptotic thresholds in Lean 4 without unproven axioms.
 \end{abstract}
 
 \section{Introduction and Historical Context}
@@ -136,33 +138,30 @@ Consequently, the Szpiro ratio $\sigma(E_k) = \frac{\ln |\Delta_k|}{\ln N_k}$ sa
 
 ---
 
-\section{Mazur--Ribet Level-Lowering and the Hecke Sieve}
+\section{Critical Analysis of Modular Invariant Obstructions}
 
-A fundamental barrier to using the general Szpiro inequality $\Delta \le C N^{6+\varepsilon}$ is that unconditional analytic bounds on symmetric square $L$-functions (Hoffstein--Lockhart \cite{hoffsteinlockhart1994}) only guarantee $\sigma \le 12$.
-
-To bypass this barrier without assuming the unproven Szpiro conjecture, we exploit the unique prime-power valuations of the Frey curve $E_k$:
+\subsection{Obstruction 1: The Modular Degree Analytic Gap}
+By the Modularity Theorem (Wiles \cite{wiles1995}, Breuil et al. \cite{bcdt2001}), $E_k$ corresponds to a newform $f_k \in S_2(\Gamma_0(N_k))$ with modular degree $\deg(\varphi_k) = \frac{4\pi^2 \|f_k\|^2}{\Omega_1(E_k) \Omega_2(E_k)}$.
+Unconditionally, the sharpest known analytic bounds for symmetric square $L$-functions (Hoffstein--Lockhart \cite{hoffsteinlockhart1994}) establish:
 \begin{equation}
-v_2(\Delta(E_k)) = 2k + \mathcal{O}(1), \quad v_3(\Delta(E_k)) = 2k + \mathcal{O}(1).
+L(1, \operatorname{Sym}^2 f_k) \le C(\varepsilon) (\ln N_k)^3 \implies \deg(\varphi_k) \le C \cdot N_k (\ln N_k)^3 \cdot 3^k.
 \end{equation}
-
-\begin{theorem}[Stripped Serre Conductor, Ribet \cite{ribet1990}]
-Let $p$ be a prime divisor of $k$ with $p \ge 5$. Consider the continuous Galois representation:
+Substituting this into Faltings' height inequality $h_F(E_k) \le \frac{1}{2}\ln \deg(\varphi_k) + \frac{1}{2}\ln N_k$ yields:
 \begin{equation}
-\rho_{E_k, p} : \operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q}) \longrightarrow \operatorname{GL}_2(\mathbb{F}_p).
+\ln |\Delta(E_k)| \le 12 \ln N(E_k) \implies \sigma(E_k) \le 12.
 \end{equation}
-Because $p \mid v_2(\Delta_k)$ and $p \mid v_3(\Delta_k)$, the representation $\rho_{E_k, p}$ is unramified at 2 and 3. By Ribet's Level-Lowering Theorem, $\rho_{E_k, p}$ arises from a normalized cuspidal newform $g \in S_2(\Gamma_0(N_p))$ of reduced level:
+Because $12 > 5.26189$, unconditional modular degree bounds are insufficient to rule out exceptions without assuming the full Szpiro conjecture ($\sigma < 5.26$).
+
+\subsection{Obstruction 2: Dimension Explosion in Mazur--Ribet Level-Lowering}
+Because $p \mid v_2(\Delta_k) = 2k$ and $p \mid v_3(\Delta_k) = 2k$ for $p \mid k$, Ribet's Level-Lowering Theorem \cite{ribet1990} eliminates $2^k$ and $3^k$ from the level, lowering to:
 \begin{equation}
 N_p = 2 \cdot \operatorname{rad}(r_k).
 \end{equation}
-\end{theorem}
-
-\begin{corollary}[Elimination of Exponential Level Factors]
-The exponential factors $3^k$ and $2^k$ are completely eliminated from the modular level $N_p$. For every prime $\ell \nmid 2 p \operatorname{rad}(r_k)$, the traces of Frobenius satisfy the congruence:
+However, unlike Fermat's equation where the third term is a $p$-th power ($N_p = 2 \implies \dim S_2 = 0$), the remainder $r_k$ is not a power ($v_\ell(r_k) = 1$). Thus $\operatorname{rad}(r_k) \approx 2^k$, and the dimension of the target space explodes exponentially:
 \begin{equation}
-a_\ell(E_k) \equiv a_\ell(g) \pmod{\mathfrak{p}},
+\dim S_2(\Gamma_0(2 \operatorname{rad}(r_k))) \asymp \frac{2^k}{12} \xrightarrow{\quad k \to \infty \quad} \infty.
 \end{equation}
-where $|a_\ell(E_k)| \le 2\sqrt{\ell}$ and $|a_\ell(g)| \le 2\sqrt{\ell}$ by the Hasse--Weil bound.
-\end{corollary}
+Hence, level-lowering does not yield an automatic dimension-zero contradiction.
 
 ---
 
@@ -211,7 +210,7 @@ The companion module \texttt{FreyDicksonPillai.lean} formalizes:
 ---
 
 \section{Conclusion}
-The Frey--Hellegouarch formulation combined with Mazur--Ribet level-lowering provides a mathematically rigorous modular bridge that eliminates the exponential level contribution $3^k$. The resulting Hecke eigenvalue sieve over $S_2(\Gamma_0(2 \operatorname{rad}(r_k)))$ represents the most promising arithmetic framework for an unconditional resolution of the Dickson--Pillai condition.
+The Frey--Hellegouarch formulation establishes that the Dickson--Pillai condition is strictly equivalent to bounding the localized Szpiro ratio $\sigma(E_k) < 5.26$ on the specialized Frey family $y^2 = x(x - r_k)(x + 2^k q_k)$. While unconditional analytic bounds on modular forms currently reach $\sigma \le 12$, this formulation provides a deep geometric foundation connecting Waring's problem to modern arithmetic geometry.
 
 \begin{thebibliography}{99}
 \bibitem{dickson1936} L.~E.~Dickson, \emph{The Waring problem and its generalizations}, Bull. Amer. Math. Soc. \textbf{42} (1936), 833--842.
@@ -219,7 +218,7 @@ The Frey--Hellegouarch formulation combined with Mazur--Ribet level-lowering pro
 \bibitem{mahler1957} K.~Mahler, \emph{On the fractional parts of the powers of a rational number (II)}, Mathematika \textbf{4} (1957), 122--124.
 \bibitem{beukers1981} F.~Beukers, \emph{Fractional parts of powers of rationals}, Math. Proc. Cambridge Philos. Soc. \textbf{90} (1981), 13--20.
 \bibitem{wiles1995} A.~Wiles, \emph{Modular elliptic curves and Fermat's Last Theorem}, Ann. of Math. \textbf{141} (1995), 443--551.
-\bibitem{taylorwiles1995} R.~Taylor and A.~Wiles, \emph{Ring-theoretic properties of certain Hecke algebras}, Ann. of Math. \textbf{141} (1995), 553--572.
+\bibitem{bcdt2001} C.~Breuil, B.~Conrad, F.~Diamond, and R.~Taylor, \emph{On the modularity of elliptic curves over $\mathbb{Q}$}, J. Amer. Math. Soc. \textbf{14} (2001), 843--939.
 \bibitem{ribet1990} K.~A.~Ribet, \emph{On modular representations of $\operatorname{Gal}(\overline{\mathbb{Q}}/\mathbb{Q})$ arising from modular forms}, Invent. Math. \textbf{100} (1990), 431--476.
 \bibitem{hoffsteinlockhart1994} J.~Hoffstein and P.~Lockhart, \emph{Coefficients of Maass forms and the Siegel zero}, Ann. of Math. \textbf{140} (1994), 161--181.
 \end{thebibliography}
