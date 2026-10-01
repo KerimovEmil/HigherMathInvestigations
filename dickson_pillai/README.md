@@ -80,6 +80,11 @@ The investigation is organized into four clean modular subdirectories:
 * [`stress_test.py`](./nesterenko_modular_approach/stress_test.py): Rigorous validation suite for modular differential algebra.
 * [`uniform_zero_lemma.py`](./nesterenko_modular_approach/uniform_zero_lemma.py): Multiplicity and zero-order calculations.
 
+### 📁 `frey_modular_degree_approach/` (Frey–Hellegouarch Curves & Szpiro Framework)
+* [`frey_proof.tex`](./frey_modular_degree_approach/frey_proof.tex) / [`frey_proof.pdf`](./frey_modular_degree_approach/frey_proof.pdf): Research manuscript detailing the Frey curve $E_k : y^2 = x(x - r_k)(x + 2^k q_k)$ and Szpiro asymptotic thresholds.
+* [`formalization/FreyDicksonPillai.lean`](./frey_modular_degree_approach/formalization/FreyDicksonPillai.lean): Verified Lean 4 formalization of Frey curve Weierstrass models, full 2-torsion, and Szpiro threshold inequalities.
+* [`critique_and_salvage.md`](./frey_modular_degree_approach/critique_and_salvage.md): Adversarial critique of the modular degree gap and the Mazur–Ribet level-lowering salvage protocol.
+
 ### 📁 `numerical_validation/` (Streaming Engines & High-Throughput Verification)
 * [`parallel_verifier.cpp`](./numerical_validation/parallel_verifier.cpp): 20-thread parallel C++ engine with unrolled 128-bit limb arithmetic.
 * [`verifier.cpp`](./numerical_validation/verifier.cpp): Single-threaded reference verifier with rolling state hashing.
