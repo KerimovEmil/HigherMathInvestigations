@@ -109,3 +109,15 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# LaTeX intermediate build files
+*.aux
+*.out
+*.log
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+
