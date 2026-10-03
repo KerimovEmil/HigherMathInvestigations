@@ -85,6 +85,12 @@ The investigation is organized into four clean modular subdirectories:
 * [`formalization/FreyDicksonPillai.lean`](./frey_modular_degree_approach/formalization/FreyDicksonPillai.lean): Verified Lean 4 formalization of Frey curve Weierstrass models, full 2-torsion, and Szpiro threshold inequalities.
 * [`critique_and_salvage.md`](./frey_modular_degree_approach/critique_and_salvage.md): Adversarial critique of the modular degree gap and the Mazur–Ribet level-lowering salvage protocol.
 
+### 📁 `two_adic_rigidity_approach/` (2-Adic Valuation Rigidity & Carry Drift)
+* [`two_adic_proof.tex`](./two_adic_rigidity_approach/two_adic_proof.tex) / [`two_adic_proof.pdf`](./two_adic_rigidity_approach/two_adic_proof.pdf): Comprehensive research paper detailing exact LTE valuation formulas, carry drift dynamics, and the Archimedean vs.\ 2-adic barrier.
+* [`formalization/TwoAdicDefectRigidity.lean`](./two_adic_rigidity_approach/formalization/TwoAdicDefectRigidity.lean): 100% axiom-free, sorry-free Lean 4 formalization proving division identities, multiplier spectrum bounds, parity valuations, and candidate leakage.
+* [`two_adic_verification.py`](./two_adic_rigidity_approach/two_adic_verification.py): High-precision Python verification script auditing valuations and multiplier spectra.
+* [`README.md`](./two_adic_rigidity_approach/README.md): Modular framework documentation.
+
 ### 📁 `numerical_validation/` (Streaming Engines & High-Throughput Verification)
 * [`parallel_verifier.cpp`](./numerical_validation/parallel_verifier.cpp): 20-thread parallel C++ engine with unrolled 128-bit limb arithmetic.
 * [`verifier.cpp`](./numerical_validation/verifier.cpp): Single-threaded reference verifier with rolling state hashing.

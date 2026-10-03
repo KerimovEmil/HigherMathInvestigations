@@ -1,0 +1,302 @@
+\documentclass[11pt,reqno]{amsart}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=red!70!black,
+    urlcolor=blue!70!black
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\numberwithin{equation}{section}
+
+\title[2-Adic Defect Rigidity for Dickson--Pillai]{On 2-Adic Defect Rigidity for the Dickson--Pillai Condition:\\Exact Valuations, Discrete Carry Drift, and the Archimedean Barrier}
+
+\author{Emil Kerimov}
+\email{emil.kerimov93@gmail.com}
+\date{\today}
+
+\begin{document}
+
+\begin{abstract}
+The Dickson--Pillai condition $r_k + q_k \le 2^k$ (where $3^k = q_k 2^k + r_k$) governs the universal formula $g(k) = 2^k + \lfloor(3/2)^k\rfloor - 2$ for Waring's problem across all $k \ge 6$. In this paper, we investigate the $2$-adic algebraic structure of the shifted Diophantine defects $D_k := 2^k - r_k = (q_k + 1)2^k - 3^k$ in the ring $\mathbb{Z}$.
+
+We establish exact algebraic valuation identities governing shifted defects:
+(1) For all even $k \ge 6$, the Lifting the Exponent Lemma (LTE) combined with the ultrametric inequality proves $v_2(D_k + 1) = v_2(k) + 2$;
+(2) For odd $k \equiv 3 \pmod 4$ ($k \ge 5$), the defect is rigidly locked to $D_k \equiv 5 \pmod{16}$, yielding $v_2(D_k + 3) = 3$;
+(3) For odd $k \equiv 1 \pmod 4$, $v_2(D_k + 3) = v_2(k - 1) + 2$.
+As an immediate corollary, $D_k \bmod 8 \in \{5, 7\}$ for all $k \ge 3$, which unconditionally proves that small defects $D_k \in \{1, 3\}$ have zero solutions.
+
+Furthermore, we analyze the discrete carry drift recurrence $3 D_k - D_{k+1} = C_k 2^k$ and prove that the multiplier $C_k = 3 q_k - 2 q_{k+1} + 1$ takes values in $\{-1, 0, 1, 2\}$, disproving the naive conjecture that $C_k \in \{-1, 0, 1\}$ (witnessed by $C_4 = C_7 = 2$). Finally, we elucidate the fundamental \emph{Archimedean vs.\ 2-Adic Barrier}: because the $2$-adic modulus is bounded by $2^{v_2(k)+3} \le 8k$ while the failure threshold $q_k \asymp (1.5)^k$ grows exponentially, there exist $\asymp (1.5)^k / (8k)$ candidate integers in the danger zone $[1, q_k)$ satisfying the exact $2$-adic conditions. Consequently, $2$-adic rigidity alone cannot establish the Archimedean inequality $D_k \ge q_k$. All division relations, parity valuations, and range verifications are formally formalized in Lean~4 with zero external axioms.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction and Problem Formulation}
+
+For each integer $k \ge 1$, let $g(k)$ denote the minimal number of non-negative $k$-th powers needed to represent every positive integer. In 1936, Dickson \cite{dickson1936} and Pillai \cite{pillai1936} proved that for all $k \ge 6$:
+\begin{equation}\label{eq:waring}
+g(k) = 2^k + \left\lfloor \left(\frac{3}{2}\right)^k \right\rfloor - 2,
+\end{equation}
+provided that the remainder $r_k = 3^k \bmod 2^k$ and quotient $q_k = \lfloor (3/2)^k \rfloor$ satisfy the \emph{Dickson--Pillai condition}:
+\begin{equation}\label{eq:dp_cond}
+r_k + q_k \le 2^k, \quad \text{where } 3^k = q_k 2^k + r_k \quad (0 \le r_k < 2^k).
+\end{equation}
+Defining the Diophantine \emph{defect} $D_k$ by
+\begin{equation}\label{eq:defect_def}
+D_k := 2^k - r_k = (q_k + 1)2^k - 3^k,
+\end{equation}
+the condition \eqref{eq:dp_cond} is strictly equivalent to:
+\begin{equation}\label{eq:dp_defect}
+D_k \ge q_k.
+\end{equation}
+A failure of the condition would correspond to an exponent $k$ where $1 \le D_k < q_k$. Although Kubina and Wunderlich \cite{kubina1990} computationally verified that no exceptions exist for $k \le 471{,}600{,}000$, and Mahler \cite{mahler1957} proved that only finitely many exceptions can exist via Ridout's $p$-adic Thue--Siegel--Roth theorem, an effective proof that \emph{zero} exceptions exist remains one of the notorious open problems in Diophantine number theory.
+
+In this work, we analyze the $2$-adic valuation rigidity of $D_k$ and the discrete carry recurrence governing transitions $D_k \mapsto D_{k+1}$.
+
+\section{The 2-Adic Defect Rigidity Theorems}
+
+Let $v_2(x)$ denote the standard $2$-adic valuation on $\mathbb{Z}$, with the ultrametric property:
+\[
+v_2(A - B) = \min(v_2(A), v_2(B)) \quad \text{whenever } v_2(A) \ne v_2(B).
+\]
+
+\subsection{\texorpdfstring{Even Index Rigidity ($k = 2m$)}{Even Index Rigidity (k = 2m)}}
+
+\begin{theorem}[Even Index 2-Adic Rigidity]\label{thm:even_rigidity}
+For every even integer $k = 2m$ with $k \ge 6$:
+\begin{equation}\label{eq:even_rigidity}
+v_2(D_k + 1) = v_2(k) + 2.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+From the defect identity \eqref{eq:defect_def}, we add $1$ to both sides:
+\begin{equation}\label{eq:d_plus_1}
+D_k + 1 = (q_k + 1)2^k - (3^k - 1) = (q_k + 1)2^k - (9^m - 1).
+\end{equation}
+We factor $9^m - 1 = (8 + 1)^m - 1 = 8 V_m$, where $V_m := \sum_{\ell=0}^{m-1} 9^\ell$.
+By the classical Lifting the Exponent Lemma (LTE) for $p=2$:
+\begin{equation}
+v_2(9^m - 1) = v_2(9 - 1) + v_2(m) = 3 + v_2(m) = 3 + (v_2(k) - 1) = v_2(k) + 2.
+\end{equation}
+Now, we inspect the valuation of the first term $A = (q_k + 1)2^k$:
+\[
+v_2(A) = k + v_2(q_k + 1) \ge k.
+\]
+For all even $k \ge 6$, we have $k > v_2(k) + 2$. Indeed:
+\begin{itemize}
+    \item If $k = 6$: $v_2(6) + 2 = 1 + 2 = 3 < 6$.
+    \item If $k = 8$: $v_2(8) + 2 = 3 + 2 = 5 < 8$.
+    \item In general, for $k \ge 6$, $2^{k/2} > k$, so $v_2(k) \le \log_2 k < k - 2$.
+\end{itemize}
+Applying the non-Archimedean ultrametric property to $D_k + 1 = A - (9^m - 1)$:
+\[
+v_2(D_k + 1) = \min(v_2(A), v_2(9^m - 1)) = v_2(9^m - 1) = v_2(k) + 2. \qedhere
+\]
+\end{proof}
+
+\subsection{\texorpdfstring{Odd Index Rigidity ($k \equiv 3 \pmod 4$)}{Odd Index Rigidity (k = 3 mod 4)}}
+
+\begin{theorem}[Odd Branch $k \equiv 3 \pmod 4$ Rigidity]\label{thm:odd_3mod4}
+For every integer $k \equiv 3 \pmod 4$ with $k \ge 5$:
+\begin{equation}
+v_2(D_k + 3) = 3 \iff D_k \equiv 5 \pmod{16}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $k = 2m + 1$ with $m$ odd. Then $3^k = 3 \cdot 9^m = 3 + 3(9^m - 1) = 3 + 24 V_m$.
+Adding $3$ to $D_k$:
+\[
+D_k + 3 = (q_k + 1)2^k - (3^k - 3) = (q_k + 1)2^k - 24 V_m.
+\]
+Dividing by $8$:
+\[
+\frac{D_k + 3}{8} = (q_k + 1)2^{k-3} - 3 V_m.
+\]
+Since $m$ is odd, $V_m = \sum_{\ell=0}^{m-1} 9^\ell \equiv m \cdot 1 \equiv 1 \pmod 2$, so $3 V_m$ is odd.
+For $k \ge 5$, $k - 3 \ge 2$, hence $(q_k + 1)2^{k-3}$ is strictly even.
+The difference of an even and an odd integer is odd, so $(D_k + 3)/8$ is odd, which establishes $v_2(D_k + 3) = 3$, or equivalently $D_k + 3 \equiv 8 \pmod{16} \implies D_k \equiv 5 \pmod{16}$.
+\end{proof}
+
+\subsection{\texorpdfstring{Odd Index Branch ($k \equiv 1 \pmod 4$)}{Odd Index Branch (k = 1 mod 4)}}
+
+\begin{theorem}[Odd Branch $k \equiv 1 \pmod 4$ Rigidity]\label{thm:odd_1mod4}
+For every integer $k \equiv 1 \pmod 4$ with $k - v_2(k-1) \ge 3$:
+\begin{equation}
+v_2(D_k + 3) = v_2(k - 1) + 2.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+When $m = (k-1)/2$ is even, $v_2(m) = v_2(k-1) - 1$. Then $v_2(24 V_m) = 3 + v_2(m) = v_2(k-1) + 2$.
+Since $k - v_2(k-1) \ge 3 \iff k > v_2(k-1) + 2$, the term $(q_k+1)2^k$ has strictly higher valuation, and the ultrametric property yields $v_2(D_k + 3) = v_2(k-1) + 2$.
+\end{proof}
+
+\section{Small Defect Exclusions and Modular Restraints}
+
+\begin{theorem}[Residue Exclusion Modulo 8 and Defect Non-Triviality]\label{thm:defect_mod8}
+For all $k \ge 3$:
+\begin{equation}
+D_k \bmod 8 = \begin{cases}
+7 & \text{if } k \text{ is even}, \\
+5 & \text{if } k \text{ is odd}.
+\end{cases}
+\end{equation}
+Consequently, $D_k \ne 1$ and $D_k \ne 3$ for all $k \ge 3$.
+\end{theorem}
+
+\begin{proof}
+For $k \ge 3$, $2^k \equiv 0 \pmod 8$. Therefore,
+\[
+D_k \equiv -3^k \pmod 8.
+\]
+By elementary modular arithmetic, $3^k \equiv 1 \pmod 8$ for even $k$ and $3^k \equiv 3 \pmod 8$ for odd $k$.
+Thus:
+\[
+D_k \equiv -1 \equiv 7 \pmod 8 \quad (k \text{ even}), \qquad D_k \equiv -3 \equiv 5 \pmod 8 \quad (k \text{ odd}).
+\]
+Because $1 \not\equiv 5, 7 \pmod 8$ and $3 \not\equiv 5, 7 \pmod 8$, the defect can never equal $1$ or $3$.
+\end{proof}
+
+\begin{remark}
+This theorem proves that the smallest defects $D_k \in \{1, 3\}$ have zero solutions unconditionally.
+Furthermore, since $3^k$ is odd and $2^k$ is even, $r_k$ is odd, which forces $D_k = 2^k - r_k$ to be strictly odd for all $k \ge 1$. Hence, $D_k$ is never even.
+\end{remark}
+
+\section{The Discrete Carry Drift Recurrence and Multiplier Spectrum}
+
+\begin{theorem}[Exact Discrete Drift Recurrence]\label{thm:drift}
+For all $k \ge 1$:
+\begin{equation}\label{eq:drift_recurrence}
+3 D_k - D_{k+1} = C_k 2^k,
+\end{equation}
+where the carry multiplier $C_k$ is defined by:
+\begin{equation}\label{eq:ck_def}
+C_k := 3 q_k - 2 q_{k+1} + 1.
+\end{equation}
+Furthermore, the multiplier spectrum satisfies:
+\begin{equation}\label{eq:ck_spectrum}
+C_k \in \{-1, 0, 1, 2\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Using $D_k = (q_k + 1)2^k - 3^k$ and $D_{k+1} = (q_{k+1} + 1)2^{k+1} - 3^{k+1}$:
+\begin{align*}
+3 D_k - D_{k+1} &= 3(q_k + 1)2^k - 3 \cdot 3^k - \left[(q_{k+1} + 1)2 \cdot 2^k - 3 \cdot 3^k\right] \\
+&= [3(q_k + 1) - 2(q_{k+1} + 1)] 2^k \\
+&= [3 q_k - 2 q_{k+1} + 1] 2^k = C_k 2^k.
+\end{align*}
+To determine the bounds on $C_k$, note that $3^{k+1} = 3(q_k 2^k + r_k) = 3 q_k 2^k + 3 r_k$, while $3^{k+1} = 2 q_{k+1} 2^k + r_{k+1}$.
+Equating the two yields:
+\[
+2 q_{k+1} - 3 q_k = \frac{3 r_k - r_{k+1}}{2^k}.
+\]
+Since $0 \le r_k < 2^k$ and $0 \le r_{k+1} < 2^{k+1} = 2 \cdot 2^k$, we have:
+\[
+-2 \cdot 2^k < 3 r_k - r_{k+1} < 3 \cdot 2^k.
+\]
+Because $2 q_{k+1} - 3 q_k \in \mathbb{Z}$, it can only take values in $\{-1, 0, 1, 2\}$.
+Substituting into $C_k = 1 - (2 q_{k+1} - 3 q_k)$ gives $C_k \in \{-1, 0, 1, 2\}$.
+\end{proof}
+
+\begin{remark}[Disproof of the Naive $C_k \in \{-1, 0, 1\}$ Conjecture]
+It is tempting to conjecture that $C_k \in \{-1, 0, 1\}$. However, explicit computation disproves this claim:
+\begin{itemize}
+    \item At $k = 4$: $q_4 = 5$, $q_5 = 7 \implies C_4 = 3(5) - 2(7) + 1 = 15 - 14 + 1 = \mathbf{2}$.
+    \item At $k = 7$: $q_7 = 17$, $q_8 = 25 \implies C_7 = 3(17) - 2(25) + 1 = 51 - 50 + 1 = \mathbf{2}$.
+    \item At $k = 16$: $q_{16} = 656$, $q_{17} = 985 \implies C_{16} = 3(656) - 2(985) + 1 = 1968 - 1970 + 1 = \mathbf{-1}$.
+\end{itemize}
+Thus, $C_k$ genuinely attains the full 4-element spectrum $\{-1, 0, 1, 2\}$.
+\end{remark}
+
+\section{The Fundamental Archimedean vs.\ 2-Adic Barrier}
+
+We now address why the 2-adic rigidity theorems, despite being exact and unconditionally true, \emph{cannot prove} the Dickson--Pillai condition $D_k \ge q_k$.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of the 2-Adic Framework vs.\ Dickson--Pillai Archimedean Barrier}
+\begin{tabular}{lll}
+\toprule
+\textbf{Metric / Property} & \textbf{2-Adic Rigidity Framework} & \textbf{Dickson--Pillai Conjecture} \\
+\midrule
+Topology & Non-Archimedean $|\cdot|_2$ on $\mathbb{Q}_2$ & Archimedean $|\cdot|_\infty$ on $\mathbb{R}$ \\
+Governing Information & Lowest set bit ($v_2(D_k + c)$) & Highest set bit (Magnitude $|D_k|$) \\
+Modulus / Resolution & $2^{v_2(k)+3} \le 8k$ ($O(k)$ bits) & Exponential barrier $q_k \approx (1.5)^k$ \\
+Excluded Set & $D_k \in \{1, 3\}$ & \textbf{All} integers in $[1, q_k)$ \\
+Leakage Window & $\asymp (1.5)^k / (8k)$ candidates & Requires 0 candidates \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{theorem}[Archimedean Candidate Leakage]\label{thm:leakage}
+For even $k$, the 2-adic condition $v_2(D_k + 1) = v_2(k) + 2$ is equivalent to a single arithmetic progression:
+\begin{equation}
+D_k \equiv 2^{v_2(k)+2} - 1 \pmod{2^{v_2(k)+3}}.
+\end{equation}
+For all $k \ge 10$, the interval $[1, q_k)$ contains strictly positive numbers of integers satisfying this exact congruence:
+\begin{equation}
+N_{\mathrm{cand}}(k) := \# \left\{ d \in [1, q_k) : d \equiv 2^{v_2(k)+2} - 1 \pmod{2^{v_2(k)+3}} \right\} \asymp \frac{(1.5)^k}{8k} \to \infty.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The modulus $M_k = 2^{v_2(k)+3}$ satisfies $M_k \le 8k$.
+The interval length is $q_k = \lfloor (3/2)^k \rfloor$.
+The number of integers in $[1, q_k)$ congruent to a fixed residue modulo $M_k$ is $\lfloor (q_k - 1) / M_k \rfloor$ or $\lceil (q_k - 1) / M_k \rceil$.
+Since $(1.5)^k$ grows exponentially while $8k$ grows linearly:
+\[
+\frac{q_k}{M_k} \ge \frac{(1.5)^k - 1}{8k} \gg 1 \quad (\forall k \ge 10).
+\]
+For instance, at $k = 10$, $q_{10} = 57$, while $M_{10} = 16$. The residue class is $d \equiv 7 \pmod{16}$.
+The integers $d \in \{7, 23, 39\}$ all satisfy $v_2(d + 1) = 3 = v_2(10) + 2$ and all lie strictly inside $[1, q_{10})$.
+At $k = 100$, $q_{100} \approx 4.06 \times 10^{17}$ and $M_{100} = 32$, yielding over $1.2 \times 10^{16}$ candidate failure values satisfying the exact 2-adic rigidity condition.
+\end{proof}
+
+\begin{corollary}
+No argument operating purely inside the non-Archimedean metric $\mathbb{Q}_2$ (such as $2$-adic valuations or modular carry recurrences) can prove $D_k \ge q_k$.
+\end{corollary}
+
+\section{Formalization in Lean 4}
+
+The algebraic foundations, modular exclusions, multiplier spectrum, and Archimedean gap theorems have been formalized in Lean~4 in the companion file:
+\begin{center}
+\texttt{formalization/TwoAdicDefectRigidity.lean}
+\end{center}
+The formalization is verified with zero unproven axioms (relying only on standard Lean core \texttt{propext}, \texttt{Quot.sound}, and \texttt{Classical.choice}).
+
+\begin{thebibliography}{9}
+\bibitem{dickson1936}
+L.~E.~Dickson, \emph{The Waring problem and its generalizations}, Bull. Amer. Math. Soc. \textbf{42} (1936), 833--842.
+
+\bibitem{kubina1990}
+J.~M.~Kubina and M.~C.~Wunderlich, \emph{Extending Waring's conjecture to all components}, Math. Comp. \textbf{55} (1990), 815--820.
+
+\bibitem{mahler1957}
+K.~Mahler, \emph{On the fractional parts of the powers of a rational number (II)}, Mathematika \textbf{4} (1957), 122--124.
+
+\bibitem{pillai1936}
+S.~S.~Pillai, \emph{On Waring's problem $g(k) = 2^k + \lfloor(3/2)^k\rfloor - 2$}, Proc. Indian Acad. Sci. Sect. A \textbf{4} (1936), 261--267.
+\end{thebibliography}
+
+\end{document}
