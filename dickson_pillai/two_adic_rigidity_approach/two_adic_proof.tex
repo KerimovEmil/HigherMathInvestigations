@@ -599,7 +599,7 @@ The structural theorems yield an accelerated verification pipeline for $k > 10^9
 
 All division identities, residue exclusions, 2-adic LTE formulas, discrete carry drift recurrences, dynamical repulsion bounds, and automaton spectrum properties have been formalized in Lean~4 in the companion module:\footnote{Full source code and Lean~4 verification suites are available in the dedicated repository: \url{https://github.com/KerimovEmil/DicksonPillai} (release tag \texttt{v1.0.0}).}
 \begin{center}
-\texttt{two\_adic\_rigidity\_approach/formalization/TwoAdicDefectRigidity.lean}
+\texttt{formalization/TwoAdicDefectRigidity.lean}
 \end{center}
 The formalization compiles with zero errors, zero warnings, and zero unproven axioms (relying only on standard Lean core \texttt{propext}, \texttt{Quot.sound}, and \texttt{Classical.choice}).
 
@@ -609,6 +609,7 @@ In the accompanying Lean~4 repository, general algebraic identities (such as the
 \section{Formal Lean 4 Theorem Signatures}
 Below are the exact Lean~4 declarations and signatures proven in \texttt{TwoAdicDefectRigidity.lean}:
 
+\begin{footnotesize}
 \begin{verbatim}
 -- Division identity & equivalence to Dickson-Pillai condition
 theorem div_identity (k : Nat) : 3^k = 2^k * (3^k / 2^k) + (3^k % 2^k)
@@ -647,8 +648,7 @@ theorem char_poly_root_zero : charPolyA 0 = 0
 theorem char_poly_root_one  : charPolyA 1 = 0
 theorem char_poly_root_neg1 : charPolyA (-1) = 0
 \end{verbatim}
-
----
+\end{footnotesize}
 
 \begin{thebibliography}{99}
 \bibitem{bennett1994}
