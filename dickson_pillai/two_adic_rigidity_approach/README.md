@@ -64,6 +64,7 @@
 2. **Reciprocal Hermite–Padé Degeneracy:** The simultaneous Padé system for $(1-z)^{\pm 1/2}$ at $z = 1/9$ drops rank over $\mathbb{Q}$ ($3 f_1 - \frac{8}{3} f_2 = 0$), collapsing to Bennett's exponent $\lambda = 0.787$.
 3. **Asymmetric Padé vs. Chebyshev Clearing Factor:** The clearing factor $(e^{1/3})^k \approx (1.3956)^k$ combined with height $(1.5)^k$ yields base $2.0934$, strictly exceeding the 2-adic divisibility base $2.0000$.
 4. **Archimedean vs. 2-Adic Size Leakage:** The 2-adic modulus $2^{v_2(k)+3} \le 8k$ leaves $\asymp (1.5)^k / (8k) \to \infty$ candidate failure integers in $[1, q_k)$.
+5. **Carry Transducer Suffix Inversion & Digit Complexity:** Inverting the scalar transducer $T_u$ across a run of ones $1^L$ ($L \approx 0.415 k$) yields $u B \equiv -(\gamma_{M-L} + 1) \pmod{2^L}$. Because the window $L$ is sub-periodic ($\pi(u) \sim u \approx k > L$), intermediate carries are unconstrained, and digit complexity bounds for 2-adic logarithms remain open, this provides a conditional reduction rather than an unconditional closure.
 
 ---
 

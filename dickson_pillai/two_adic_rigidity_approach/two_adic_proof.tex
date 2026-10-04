@@ -467,6 +467,30 @@ N_{\mathrm{cand}}(k) \asymp \frac{(1.5)^k}{8k} \to \infty
 \end{equation}
 integers that satisfy the exact 2-adic valuation formula. Purely non-Archimedean 2-adic methods cannot eliminate these high-order bits without Diophantine transcendence input.
 
+\subsection{Barrier 5: Carry Transducer Inversion and the 2-Adic Digit Complexity Barrier}
+An attractive approach to closing the Archimedean gap is to invert the scalar carry transducer $T_u$ executing multiplication by $u = k / 2^{v_2(k)}$ on the 2-adic bits of $\nu = \frac{\ln_2 3}{4}$.
+
+Under a hypothetical failure $D_k < q_k$, the top $L \ge 0.415037 k - \log_2 k$ bits of $u \cdot \nu \pmod{2^M}$ (where $M = k - v_2(k) - 2$) must terminate in an unbroken monochromatic run of ones $1^L$. The iterated carry transducer equation across a window of length $L$ yields:
+\begin{equation}\label{eq:transducer_inversion}
+u \cdot B \equiv -(\gamma_{M-L} + 1) \pmod{2^L},
+\end{equation}
+where $B = \sum_{\ell=0}^{L-1} c_{M-L+\ell} 2^\ell$ represents the input slice of bits from $\nu$, and $\gamma_{M-L} \in \{0, 1, \dots, u-1\}$ is the accumulated carry into position $M - L$.
+
+While equation \eqref{eq:transducer_inversion} connects the Diophantine failure to the binary subwords of $\nu$, it encounters three fundamental Diophantine obstructions:
+\begin{enumerate}
+    \item \textbf{Sub-Periodic Window ($\pi(u) > L$):} The rational fraction $-( \gamma_{M-L} + 1)/u$ has 2-adic period $\pi(u) = \operatorname{ord}_u(2)$. For generic odd $u \approx k$, $\pi(u) \asymp u \approx k$. Because $L \approx 0.415 k < k \approx \pi(u)$, the window $L$ is strictly shorter than a single full period, precluding internal periodicity collapse.
+    \item \textbf{Unconstrained Intermediate Carry:} The carry $\gamma_{M-L}$ accumulates through $M - L \approx 0.585 k$ preceding multiplication steps. In general, $\gamma_{M-L} \ne 0$, introducing an unconstrained degree of freedom.
+    \item \textbf{Non-Triviality of 2-Adic Digit Complexity:} Bounding the length of rational subwords in $\nu$ by $\mathcal{O}(\ln k)$ would require a deep theorem on the subword complexity or irrationality measure of 2-adic logarithmic series (e.g., resolving the 2-adic analogue of Borel's normality conjecture). Currently, bounding the run-length of digits in $\nu = \frac{\ln_2 3}{4}$ remains an open problem.
+\end{enumerate}
+
+\begin{proposition}[Conditional Resolution via Digit Complexity]\label{prop:conditional_resolution}
+If the binary expansion of $\nu = \frac{\ln_2 3}{4}$ satisfies the subword complexity bound:
+\[
+L_{\max}(u) = o(u) \quad \text{as } u \to \infty
+\]
+for subwords matching rational expansions of denominator $u$, then the Dickson--Pillai condition has at most finitely many counterexamples, and zero counterexamples for all $k \ge 2$.
+\end{proposition}
+
 ---
 
 \section{High-Performance Computational Verification Algorithm}
