@@ -68,12 +68,12 @@
 4. **Archimedean vs. 2-Adic Size Leakage:** The 2-adic modulus $2^{v_2(k)+3} \le 8k$ leaves $\asymp (1.5)^k / (8k) \to \infty$ candidate failure integers in $[1, q_k)$.
 5. **Carry Transducer Suffix Inversion & Digit Complexity:** Inverting the scalar transducer $T_u$ across a run of ones $1^L$ ($L \approx 0.415 k$) yields $u B \equiv -(\gamma_{M-L} + 1) \pmod{2^L}$. We separate this analysis into two rigorous results:
    * **Proposition 6.1 (Qualitative Finiteness):** A subword run-length bound $L(u) \le c u$ with $c < \log_2(4/3) \approx 0.415037$ implies at most finitely many counterexamples.
-   * **Theorem 6.2 (Conditional Effective Elimination):** An effective bound $L(u) < \log_2(4/3) u - \log_2 u$ for all $u \ge u_0$ with $u_0 \le 471{,}600{,}000$, combined with Kubina–Wunderlich (1990), establishes zero exceptions for all $k \ge 2$.
+   * **Theorem 6.2 (Conditional Effective Elimination):** An effective bound $L(u, M) < \lambda_{\mathrm{target}} M - \log_2 M$ for all windows $M \ge M_0$ with $M_0 \le 471{,}599{,}900$, combined with Kubina–Wunderlich (1990), establishes zero exceptions for all $k \ge 2$.
 
 ---
 
 ## 5. Artifact Directory Structure
 
-* [`two_adic_proof.tex`](./two_adic_proof.tex) / [`two_adic_proof.pdf`](./two_adic_proof.pdf): Full 12-page publication manuscript with Table 1 benchmark comparison, complete proofs, Table of Contents, Appendix A with formal Lean 4 declarations, and references.
+* [`two_adic_proof.tex`](./two_adic_proof.tex) / [`two_adic_proof.pdf`](./two_adic_proof.pdf): Full 13-page publication manuscript with Table 1 benchmark comparison, complete proofs, Table of Contents, Appendix A with formal Lean 4 declarations, and references.
 * [`formalization/TwoAdicDefectRigidity.lean`](./formalization/TwoAdicDefectRigidity.lean): 100% axiom-free Lean 4 formalization.
 * [`two_adic_verification.py`](./two_adic_verification.py): Python test suite verifying all 7 theorems, carry partitions, simulated failure escapes, and automaton spectra up to $k = 100$.

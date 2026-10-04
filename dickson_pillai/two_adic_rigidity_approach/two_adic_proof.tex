@@ -563,11 +563,11 @@ Equating run-lengths via the carry transducer inversion yields:
 \lambda_{\mathrm{target}} k - \log_2 k \le L_k \le L(u, M_k) + \mathcal{O}(v_2(k)) \le c k + \mathcal{O}(\log_2 k).
 \]
 Since $c < \lambda_{\mathrm{target}}$, we obtain $(\lambda_{\mathrm{target}} - c) k \le \mathcal{O}(\log_2 k)$, which holds for only finitely many values of $k$, regardless of the size of the odd part $u = k / 2^{v_2(k)}$.
-For odd failure indices, Theorem~\ref{thm:repulsion} guarantees that no failure can follow another failure, and an analogous transducer reduction applies to $3^k \equiv -D_k \pmod{2^k}$. Thus, the set of counterexamples is strictly finite.
+For odd failure indices $k = 2m + 1$, an exact analogue applies: factoring $3^k = 3 \cdot 9^m = 3 \exp_2(2m \ln_2 3) = 3 \exp_2(8m \nu)$ and reducing modulo $2^k$ yields $3 \exp_2(8m \nu) \equiv -D_k \pmod{2^k}$, which imposes an identical monochromatic suffix condition on the windowed expansion of $m \nu$ (where $m = (k - 1)/2$ and $v_2(D_k + 3)$ is governed by Theorem~\ref{thm:odd_lte}). Furthermore, Theorem~\ref{thm:repulsion} guarantees that no failure can follow another failure. Thus, the set of counterexamples is strictly finite.
 \end{proof}
 
 \begin{theorem}[Conditional Effective Elimination for All $k \ge 2$]\label{thm:conditional_effective}
-Suppose there exists an effective threshold $M_0 \le 471{,}600{,}000$ such that for all odd integers $u \ge 1$ and all window lengths $M \ge M_0$, the maximal run-length of continuous ones satisfies:
+Suppose there exists an effective threshold $M_0 \le K_{\mathrm{comp}} - \lfloor \log_2 K_{\mathrm{comp}} \rfloor - 2$ (e.g., $M_0 \le 471{,}599{,}900$, where $K_{\mathrm{comp}} = 471{,}600{,}000$ is the Kubina--Wunderlich bound) such that for all odd integers $u \ge 1$ and all window lengths $M \ge M_0$, the maximal run-length of continuous ones satisfies:
 \begin{equation}\label{eq:effective_hypothesis}
 L(u, M) < \lambda_{\mathrm{target}} M - \log_2 M, \quad \text{where } \lambda_{\mathrm{target}} = \log_2(4/3).
 \end{equation}
@@ -575,8 +575,12 @@ Then, combined with the computational verification of Kubina and Wunderlich \cit
 \end{theorem}
 
 \begin{proof}
-By Kubina and Wunderlich \cite{kubina1990}, no counterexamples exist for $2 \le k \le 471{,}600{,}000$.
-If hypothesis \eqref{eq:effective_hypothesis} holds for all windows $M \ge M_0$ with $M_0 \le 471{,}600{,}000$, then for any candidate failure $k > 471{,}600{,}000 \ge M_0$, the required failure run-length $L_k \ge \lambda_{\mathrm{target}} k - \log_2 k \ge \lambda_{\mathrm{target}} M_k - \log_2 M_k$ strictly exceeds $L(u, M_k)$, creating a contradiction. Hence no exceptions can exist for any $k \ge 2$.
+By Kubina and Wunderlich \cite{kubina1990}, no counterexamples exist for $2 \le k \le K_{\mathrm{comp}} = 471{,}600{,}000$.
+For any candidate failure $k > K_{\mathrm{comp}}$, the associated window length is $M_k = k - v_2(k) - 2$. Since $v_2(k) \le \lfloor \log_2 k \rfloor$, we have:
+\[
+M_k \ge k - \lfloor \log_2 k \rfloor - 2 \ge (K_{\mathrm{comp}} + 1) - \lfloor \log_2(K_{\mathrm{comp}} + 1) \rfloor - 2 \ge M_0.
+\]
+If hypothesis \eqref{eq:effective_hypothesis} holds for all windows $M \ge M_0$, then the required failure run-length $L_k \ge \lambda_{\mathrm{target}} k - \log_2 k \ge \lambda_{\mathrm{target}} M_k - \log_2 M_k$ strictly exceeds $L(u, M_k)$, creating a contradiction. Hence no exceptions can exist for any $k \ge 2$.
 \end{proof}
 
 ---
@@ -603,7 +607,7 @@ In the accompanying Lean~4 repository, general algebraic identities (such as the
 
 \appendix
 \section{Formal Lean 4 Theorem Signatures}
-In the accompanying Lean~4 repository, general algebraic identities (such as the polynomial parity invariant $V_m \bmod 2 \equiv m \bmod 2$, the defect equivalence, and the automaton spectrum) are proven for all $m \in \mathbb{N}$, while the higher valuation instances of the LTE rigidity theorems are formally verified on finite parameter domains via certified kernel evaluation. Below are the exact Lean~4 declarations and signatures proven in \texttt{TwoAdicDefectRigidity.lean}:
+Below are the exact Lean~4 declarations and signatures proven in \texttt{TwoAdicDefectRigidity.lean}:
 
 \begin{verbatim}
 -- Division identity & equivalence to Dickson-Pillai condition
