@@ -328,10 +328,7 @@ Let $k \ge 5$ be a failure index. By Theorem~\ref{thm:state_collapse}, $C_k \in 
     we have $q_{k+1} < \frac{1}{2} 2^k \implies 2^k > 2 q_{k+1}$.
     Hence $D_{k+1} > 2^k > 2 q_{k+1}$.
     \item \textbf{Branch 2 ($q_k$ odd $\implies C_k = 0$):}
-    Here $D_{k+1} = 3 D_k$. Since $q_k$ is odd and $\delta_k > 2/3 \ge 1/3$, by Theorem~\ref{thm:carry_drift} we have:
-    \[
-    q_{k+1} = \frac{3 q_k + 1}{2}.
-    \]
+    Here $D_{k+1} = 3 D_k$. Since $q_k$ is odd and $\delta_k > 2/3 \ge 1/3$, by Theorem~\ref{thm:carry_drift} we have $q_{k+1} = \frac{3 q_k + 1}{2}$.
     Then the safety ratio satisfies:
     \[
     \frac{D_{k+1}}{q_{k+1}} = \frac{3 D_k}{(3 q_k + 1)/2} = \frac{6 D_k}{3 q_k + 1} \approx 2 \cdot \frac{D_k}{q_k}.
@@ -374,13 +371,17 @@ By Theorem~\ref{thm:even_lte}, for even $k$:
 \[
 D_k = 2^{v_2(k)+2} W - 1 \implies -D_k = 1 - 2^{v_2(k)+2} W.
 \]
-Applying the 2-adic logarithm $\ln_2(1 - x) = -x - \sum_{j=2}^\infty \frac{x^j}{j}$ with $x = 2^{v_2(k)+2} W$:
+Applying the 2-adic logarithm power series $\ln_2(1 - x) = -\sum_{j=1}^\infty \frac{x^j}{j} = -x - \sum_{j=2}^\infty \frac{x^j}{j}$ (noting that because the argument is $1 - x$, all terms have strictly negative signs) with $x = 2^{v_2(k)+2} W$:
 \[
 k \ln_2 3 \equiv -2^{v_2(k)+2} W - \sum_{j=2}^\infty \frac{(2^{v_2(k)+2} W)^j}{j} \pmod{2^k}.
 \]
 Writing $k = 2^{v_2(k)} u$ and $\ln_2 3 = 4 \nu$, the left-hand side is $2^{v_2(k)+2} u \nu$. Dividing both sides by $2^{v_2(k)+2}$ in $\mathbb{Q}_2$ gives:
 \[
-u \nu \equiv -W - \sum_{j=2}^\infty \frac{2^{(j-1)(v_2(k)+2)}}{j} W^j \pmod{2^{k - v_2(k) - 2}},
+u \nu \equiv -W - \sum_{j=2}^\infty \frac{2^{(j-1)(v_2(k)+2)}}{j} W^j \pmod{2^{k - v_2(k) - 2}}.
+\]
+Transposing all terms to the left-hand side makes all coefficients positive:
+\[
+u \nu + W + \sum_{j=2}^\infty \frac{2^{(j-1)(v_2(k)+2)}}{j} W^j \equiv 0 \pmod{2^{k - v_2(k) - 2}},
 \]
 which proves \eqref{eq:exact_nonlinear_cong} and \eqref{eq:analytic_ball}.
 For the valuation of the higher-order terms ($j \ge 2$):
@@ -534,8 +535,16 @@ While equation \eqref{eq:transducer_inversion} connects the Diophantine failure 
     \item \textbf{Non-Triviality of 2-Adic Digit Complexity:} Bounding the length of rational subwords in $\nu$ by $\mathcal{O}(\ln k)$ would require a deep theorem on the subword complexity or irrationality measure of 2-adic logarithmic series (e.g., resolving the 2-adic analogue of Borel's normality conjecture). Currently, bounding the run-length of digits in $\nu = \frac{\ln_2 3}{4}$ remains an open problem.
 \end{enumerate}
 
-\begin{proposition}[Qualitative Finiteness via Sublinear Run-Lengths]\label{prop:qualitative_finiteness}
-Let $\lambda_{\mathrm{target}} = \log_2(4/3) \approx 0.415037$. Suppose there exists a constant $c < \lambda_{\mathrm{target}}$ such that for all sufficiently large odd integers $u$, any continuous run of ones $1^L$ produced by multiplying an initial segment of $\nu = \frac{\ln_2 3}{4}$ by $u$ has length bounded by $L(u) \le c \cdot u$. Then there are at most finitely many counterexamples to the Dickson--Pillai condition.
+\begin{definition}[Windowed Transducer Run Length]
+For any odd integer $u \ge 1$ and bit-precision $M \ge 1$, let $L(u, M)$ denote the maximal length of an unbroken monochromatic run of ones $1^L$ occurring in the $M$-bit binary prefix $(u \cdot \nu) \bmod 2^M$, where $\nu = \frac{\ln_2 3}{4} \in \mathbb{Z}_2^\times$.
+\end{definition}
+
+\begin{proposition}[Qualitative Finiteness via Sublinear Window Complexity]\label{prop:qualitative_finiteness}
+Let $\lambda_{\mathrm{target}} = \log_2(4/3) \approx 0.415037$. Suppose there exists a constant $c < \lambda_{\mathrm{target}}$ such that for all odd integers $u \ge 1$ and all sufficiently large window lengths $M$, the maximal run-length of continuous ones satisfies:
+\begin{equation}\label{eq:window_complexity_bound}
+L(u, M) \le c \cdot M.
+\end{equation}
+Then there are at most finitely many counterexamples to the Dickson--Pillai condition.
 \end{proposition}
 
 \begin{proof}
@@ -544,26 +553,30 @@ By definition of $D_k = 2^k - r_k$, this forces $r_k = 3^k \bmod 2^k > (1 - 2^{-
 \[
 L_k \ge \lambda_{\mathrm{target}} k - \log_2 k.
 \]
-For even failure indices $k = 2^{v_2(k)} u$, Theorem~\ref{thm:nu_reduction} connects $r_k$ to the 2-adic expansion of $u \nu$, where $u \le k$.
-If the run-length of continuous ones in $u \nu$ satisfies $L(u) \le c u$, then:
+For even failure indices $k = 2^{v_2(k)} u$, Theorem~\ref{thm:nu_reduction} connects $r_k$ to the 2-adic expansion of $u \nu$ across the window of length $M_k = k - v_2(k) - 2 \le k$.
+If hypothesis \eqref{eq:window_complexity_bound} holds across all windows $M$, then the run-length in this window satisfies:
 \[
-\lambda_{\mathrm{target}} k - \log_2 k \le L_k \le c u + \mathcal{O}(v_2(k)) \le c k + \mathcal{O}(\log_2 k).
+L(u, M_k) \le c \cdot M_k \le c \cdot k.
 \]
-Since $c < \lambda_{\mathrm{target}}$, we have $(\lambda_{\mathrm{target}} - c) k \le \mathcal{O}(\log_2 k)$, which can only hold for finitely many $k$.
+Equating run-lengths via the carry transducer inversion yields:
+\[
+\lambda_{\mathrm{target}} k - \log_2 k \le L_k \le L(u, M_k) + \mathcal{O}(v_2(k)) \le c k + \mathcal{O}(\log_2 k).
+\]
+Since $c < \lambda_{\mathrm{target}}$, we obtain $(\lambda_{\mathrm{target}} - c) k \le \mathcal{O}(\log_2 k)$, which holds for only finitely many values of $k$, regardless of the size of the odd part $u = k / 2^{v_2(k)}$.
 For odd failure indices, Theorem~\ref{thm:repulsion} guarantees that no failure can follow another failure, and an analogous transducer reduction applies to $3^k \equiv -D_k \pmod{2^k}$. Thus, the set of counterexamples is strictly finite.
 \end{proof}
 
 \begin{theorem}[Conditional Effective Elimination for All $k \ge 2$]\label{thm:conditional_effective}
-Suppose there exists an effective threshold $u_0 \le 471{,}600{,}000$ such that for all odd integers $u \ge u_0$, the maximal run-length of continuous ones in $u \nu$ satisfies:
+Suppose there exists an effective threshold $M_0 \le 471{,}600{,}000$ such that for all odd integers $u \ge 1$ and all window lengths $M \ge M_0$, the maximal run-length of continuous ones satisfies:
 \begin{equation}\label{eq:effective_hypothesis}
-L(u) < \lambda_{\mathrm{target}} u - \log_2 u, \quad \text{where } \lambda_{\mathrm{target}} = \log_2(4/3).
+L(u, M) < \lambda_{\mathrm{target}} M - \log_2 M, \quad \text{where } \lambda_{\mathrm{target}} = \log_2(4/3).
 \end{equation}
 Then, combined with the computational verification of Kubina and Wunderlich \cite{kubina1990}, the Dickson--Pillai condition holds unconditionally for all $k \ge 2$ with zero exceptions.
 \end{theorem}
 
 \begin{proof}
 By Kubina and Wunderlich \cite{kubina1990}, no counterexamples exist for $2 \le k \le 471{,}600{,}000$.
-If hypothesis \eqref{eq:effective_hypothesis} holds for all $u \ge u_0$ with $u_0 \le 471{,}600{,}000$, then for any candidate failure $k > 471{,}600{,}000 \ge u_0$, the required failure run-length $L_k \ge \lambda_{\mathrm{target}} k - \log_2 k \ge \lambda_{\mathrm{target}} u - \log_2 u$ strictly exceeds $L(u)$, creating a contradiction. Hence no exceptions can exist for any $k \ge 2$.
+If hypothesis \eqref{eq:effective_hypothesis} holds for all windows $M \ge M_0$ with $M_0 \le 471{,}600{,}000$, then for any candidate failure $k > 471{,}600{,}000 \ge M_0$, the required failure run-length $L_k \ge \lambda_{\mathrm{target}} k - \log_2 k \ge \lambda_{\mathrm{target}} M_k - \log_2 M_k$ strictly exceeds $L(u, M_k)$, creating a contradiction. Hence no exceptions can exist for any $k \ge 2$.
 \end{proof}
 
 ---
@@ -586,9 +599,11 @@ All division identities, residue exclusions, 2-adic LTE formulas, discrete carry
 \end{center}
 The formalization compiles with zero errors, zero warnings, and zero unproven axioms (relying only on standard Lean core \texttt{propext}, \texttt{Quot.sound}, and \texttt{Classical.choice}).
 
+In the accompanying Lean~4 repository, general algebraic identities (such as the polynomial parity invariant $V_m \bmod 2 \equiv m \bmod 2$, the defect equivalence, the discrete drift identities, the failure isolation inequalities, and the automaton spectrum) are proven for all $m, k \in \mathbb{N}$, while the higher valuation instances of the LTE rigidity theorems are formally verified on finite parameter domains via certified kernel evaluation (\texttt{decide}).
+
 \appendix
 \section{Formal Lean 4 Theorem Signatures}
-Below are the exact Lean~4 declarations and signatures proven in \texttt{TwoAdicDefectRigidity.lean}:
+In the accompanying Lean~4 repository, general algebraic identities (such as the polynomial parity invariant $V_m \bmod 2 \equiv m \bmod 2$, the defect equivalence, and the automaton spectrum) are proven for all $m \in \mathbb{N}$, while the higher valuation instances of the LTE rigidity theorems are formally verified on finite parameter domains via certified kernel evaluation. Below are the exact Lean~4 declarations and signatures proven in \texttt{TwoAdicDefectRigidity.lean}:
 
 \begin{verbatim}
 -- Division identity & equivalence to Dickson-Pillai condition
